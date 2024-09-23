@@ -1,0 +1,7 @@
+TODO
+compatibilité WPML
+permalink translation
+
+compatilibilité Gutenberg
+permettre de ne pas traduire les titres
+//permettre une b
