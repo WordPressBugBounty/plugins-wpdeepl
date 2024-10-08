@@ -104,7 +104,7 @@ function deepl_maybe_translate_post() {
 //	var_dump( $redirection);	die('gloubi boulga');
 
 
-
+//	die("redirection $redirection " . __FUNCTION__ );
 	wp_redirect( $redirection );
 	exit();
 }
@@ -132,9 +132,6 @@ function deepl_already_exists_in_polylang( $post_id, $target_lang ) {
 
 function deepl_translate_post_link( $args ) {
 
-	$debug = true;
-	$debug =  false;
-
 	$defaults = array(
 		'ID'	=> false,
 		'source_lang'	=> false,
@@ -143,6 +140,7 @@ function deepl_translate_post_link( $args ) {
 		'bulk'	=> false,
 		'bulk_action'	=> false,
 		'force_polylang' => false,
+		'redirect'	=> true,
 	);
 	$args = wp_parse_args( $args, $defaults );
 	//plouf( $args );//	die('oiezrjzeoijr');
@@ -157,12 +155,19 @@ function deepl_translate_post_link( $args ) {
 		if( $translation_id ) {
 			$log = array ($WP_Post->ID, "already exists in $target_lang", $translation_id );
 			wpdeepl_log( $log, 'errors');
-			$redirect = get_permalink( $translation_id );
-			wp_redirect( $redirect );
-			exit();
+			if( $redirect ) {
+				$redirect = get_permalink( $translation_id );
+				die(" redirect $redirect " . __FUNCTION__ );
+				wp_redirect( $redirect );
+				exit();
+
+			}
+			else {
+				if( !$bulk_action )
+					return  $translation_id;
+			}
 		}
 	}
-
 	
 	$strings_to_translate = array();
 
@@ -190,7 +195,7 @@ function deepl_translate_post_link( $args ) {
 
 	}
 	
-	if( $debug ) plouf( $strings_to_translate,  "avant filtre");
+	if( WPDEEPLPRO_DEBUG ) plouf( $strings_to_translate,  "avant filtre");
 
 	$strings_to_translate = apply_filters( 
 		'deepl_translate_post_link_strings', 
@@ -201,8 +206,7 @@ function deepl_translate_post_link( $args ) {
 		$bulk, 
 		$bulk_action
 	);
-	if( $debug ) plouf( $strings_to_translate,  "apres filtre");
-	if( $debug ) die('ok');
+	if( WPDEEPLPRO_DEBUG ) plouf( $strings_to_translate,  "apres filtre");
 	
 
 	$no_translation = array();
@@ -215,6 +219,9 @@ function deepl_translate_post_link( $args ) {
 	//plouf( $strings_to_translate);	 die('okzeùlrkzpeorrkpzo');
 
 	$response = deepl_translate( $source_lang, $target_lang, $strings_to_translate );
+	if( WPDEEPLPRO_DEBUG ) {
+		plouf( $response, " response de traduction");;
+	}
 
 	//plouf( $strings_to_translate," from $source_lang to $target_lang ");	plouf( $response );
 	//die('zemozjpriook');
@@ -281,7 +288,6 @@ function deepl_translate_post_link( $args ) {
 		do_action('deepl_translate_post_link_translation_error', $response, $WP_Post );
 		wpdeepl_log( $log, 'errors');
 	}
-
 
 	do_action('deepl_translate_after_post_update', 
 		$post_array, 

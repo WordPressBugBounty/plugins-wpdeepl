@@ -429,6 +429,7 @@ class DeepLApiTranslate extends DeepLApi {
 	}
 
 	public function setGlossary( $glossary_id ) {
+		
 		if( $glossary_id )
 			$this->request['glossary_id'] = $glossary_id;
 	}

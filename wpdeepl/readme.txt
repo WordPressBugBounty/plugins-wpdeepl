@@ -3,7 +3,7 @@ Contributors: Malaiac
 Tags: translation, post
 Requires at least: 5.1
 Tested up to: 6.6.1
-Stable tag: 2.4.3.9
+Stable tag: 2.4.3.11
 Requires PHP: 7.2
 License: GNU AGPLv3 or later
 License URI: https://www.gnu.org/licenses/agpl-3.0.txt
@@ -33,6 +33,8 @@ Please note : the free and the premium version works the same relative to conten
 
 
 == Changelog ==
+= 2.4.3.10 - 04/10/2024 =
+* fixed bulk translation issue *
 = 2.4.3.9 - 29/05/2024 08:56:31 =
 * added Arabic language *
 = 2.4.3.7 - 27/04/2024 21:57:23 =
