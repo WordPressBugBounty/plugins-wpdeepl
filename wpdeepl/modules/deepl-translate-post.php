@@ -195,7 +195,7 @@ function deepl_translate_post_link( $args ) {
 
 	}
 	
-	if( WPDEEPLPRO_DEBUG ) plouf( $strings_to_translate,  "avant filtre");
+	if( WPDEEPL_DEBUG ) plouf( $strings_to_translate,  "avant filtre");
 
 	$strings_to_translate = apply_filters( 
 		'deepl_translate_post_link_strings', 
@@ -206,7 +206,7 @@ function deepl_translate_post_link( $args ) {
 		$bulk, 
 		$bulk_action
 	);
-	if( WPDEEPLPRO_DEBUG ) plouf( $strings_to_translate,  "apres filtre");
+	if( WPDEEPL_DEBUG ) plouf( $strings_to_translate,  "apres filtre");
 	
 
 	$no_translation = array();
@@ -219,7 +219,7 @@ function deepl_translate_post_link( $args ) {
 	//plouf( $strings_to_translate);	 die('okzeùlrkzpeorrkpzo');
 
 	$response = deepl_translate( $source_lang, $target_lang, $strings_to_translate );
-	if( WPDEEPLPRO_DEBUG ) {
+	if( WPDEEPL_DEBUG ) {
 		plouf( $response, " response de traduction");;
 	}
 

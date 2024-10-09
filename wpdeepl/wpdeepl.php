@@ -2,13 +2,13 @@
 /**
  * Plugin Name: DeepL for WordPress : translation plugin
  * Description: Get DeepL translation magic right inside your WordPress editor (with a paid DeepL Pro account)
- * Version: 2.4.3.11
+ * Version: 2.4.3.12
  * Plugin Slug: wpdeepl
  * Author: Fluenx
  * Author URI: https://www.fluenx.com/
  * Requires at least: 4.0.0
  * Tested up to: 6.6.1
- * Stable tag: 2.4.3.11
+ * Stable tag: 2.4.3.12
  * Text Domain: wpdeepl
  * Domain Path: /languages
  */
