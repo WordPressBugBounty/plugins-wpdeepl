@@ -3,6 +3,7 @@ Contributors: Malaiac
 Tags: translation, post
 Requires at least: 5.1
 Tested up to: 6.6.1
+Stable tag: 2.4.3.12
 Requires PHP: 7.2
 License: GNU AGPLv3 or later
 License URI: https://www.gnu.org/licenses/agpl-3.0.txt
