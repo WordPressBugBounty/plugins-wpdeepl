@@ -131,6 +131,8 @@ WooCommerce : 'woocommerce'
 		if ( !class_exists( 'WP_Improved_Settings\WC_Improved_Settings_API' )) {
 			require_once( dirname( __FILE__ ) . '/wp-improved-settings-api.class.php' );
 		}
+		
+/*
 		$this->WC_Improved_Settings_API = new WC_Improved_Settings_API( $this->getPluginID(), $this->getSettingsStructure() );
 
 
@@ -147,7 +149,7 @@ WooCommerce : 'woocommerce'
 		}
 
 		add_action( 'admin_notices', array( $this, 'maybe_print_notices' ) );
-
+*/
 		// Migration notices
 		//add_action( 'admin_notices', array( $this, 'maybe_display_migration_notice' ), 1 );
 
@@ -194,8 +196,9 @@ WooCommerce : 'woocommerce'
 	}
 
 	public function loadSettings() {
+		$this->settingsStructure =  $this->getSettingsStructure();
+		$this->WC_Improved_Settings_API = new WC_Improved_Settings_API( $this->getPluginID(), $this->settingsStructure );
 		// load settings into $this sttings ?
-		$this->settingsStructure = $this->getSettingsStructure();
 		//plouf( $this->settingsStructure );		die( 'oka6z4e4z64ze4' );
 	}
 
@@ -254,6 +257,19 @@ WooCommerce : 'woocommerce'
 		if ( !is_admin() ) {
 			return;
 		}
+
+		$key_name = $this->plugin_id . '_options_save';
+		if ( isset( $_REQUEST['save'] ) && isset( $_REQUEST[$key_name] ) && $_REQUEST[$key_name] ) {
+			$this->saveSettings();
+//			echo " saving";
+			if ( method_exists( $this, 'on_save' ) ) {
+//				echo "on save update";
+				$this->on_save();
+			}
+
+			add_action( 'admin_notices', array( $this, 'print_saved_notice' ) );
+		}
+		add_action( 'admin_notices', array( $this, 'maybe_print_notices' ) );
 
 		// Iterate over tabs
 		foreach ( $this->settingsStructure as $tab_key => $tab ) {
@@ -400,6 +416,7 @@ WooCommerce : 'woocommerce'
 		$active_tab = $this->getActiveTab();
 		$tab_data = $this->settingsStructure[$active_tab];
 
+		
 		//plouf($tab_data, " T AB DATA");
 
 
