@@ -173,9 +173,15 @@ function deepl_translate_post_link( $args ) {
 
 
 	foreach ( array( 'post_title', 'post_content', 'post_excerpt' ) as $key ) {
-		if( get_option( 'wpdeepl_t' . $key ) !== '' )
+		$option_key = 'wpdeepl_t' . $key;
+		if( WPDEEPL_DEBUG ) echo "\n option key $option_key = " . get_option( $option_key );
+		if( get_option( $option_key ) !== '' )
 			$strings_to_translate[$key] = $WP_Post->$key;
 	}
+
+	if( WPDEEPL_DEBUG ) plouf( $WP_Post, " WP POST" );
+
+
 
 	//plouf( $strings_to_translate);	echo "\n excertp = "; var_dump( $WP_Post->excerpt );	echo "\n post excertp"; var_dump( $WP_Post->post_excerpt) ;	die('okaze4az6e84e68a4e');
 
@@ -269,6 +275,10 @@ function deepl_translate_post_link( $args ) {
 
 		}
 //		plouf( $response );		plouf( $post_array , " arz)ozoz");		plouf( wp_slash( $post_array ) );		 die('azezeeeaok');
+
+		if( WPDEEPL_DEBUG ) {
+			plouf( $post_array, " nouvelle post array ");;
+		}
 		
 		if (count( $post_array ) > 1 ) {
 			$return = wp_update_post( wp_slash( $post_array ) );

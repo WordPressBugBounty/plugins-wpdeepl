@@ -2,13 +2,13 @@
 /**
  * Plugin Name: DeepL for WordPress : translation plugin
  * Description: Get DeepL translation magic right inside your WordPress editor (with a paid DeepL Pro account)
- * Version: 2.4.3.14
+ * Version: 2.4.4
  * Plugin Slug: wpdeepl
  * Author: Fluenx
  * Author URI: https://www.fluenx.com/
  * Requires at least: 4.0.0
  * Tested up to: 6.6.1
- * Stable tag: 2.4.3.14
+ * Stable tag: 2.4.4
  * Text Domain: wpdeepl
  * Domain Path: /languages
  */
@@ -35,7 +35,7 @@ defined( 'WPDEEPL_URL' ) 		or define( 'WPDEEPL_URL', 		plugins_url( '', __FILE__
 $plugin_data = get_file_data( __FILE__, array( 'Version' => 'Version' ), false );
 defined( 'WPDEEPL_VERSION' ) 	or define( 'WPDEEPL_VERSION', $plugin_data['Version'] );
 
-defined( 'WPDEEPL_DEBUG' ) 		or define( 'WPDEEPL_DEBUG', 0 );
+defined( 'WPDEEPL_DEBUG' ) 		or define( 'WPDEEPL_DEBUG', false );
 
 $wp_upload_dir = wp_upload_dir();
 defined( 'WPDEEPL_FILES' ) 		or define( 'WPDEEPL_FILES', 		trailingslashit( $wp_upload_dir['basedir'] ) . 'wpdeepl' );
