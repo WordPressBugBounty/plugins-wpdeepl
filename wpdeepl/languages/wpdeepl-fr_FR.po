@@ -4,9 +4,9 @@ msgstr ""
 "Version\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-10-30 15:14+0000\n"
-"PO-Revision-Date: 2024-05-05 08:20+0000\n"
+"PO-Revision-Date: 2024-12-11 05:48+0000\n"
 "Last-Translator: \n"
-"Language-Team: Français\n"
+"Language-Team: French (France)\n"
 "Language: fr_FR\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
 "MIME-Version: 1.0\n"
@@ -15,25 +15,25 @@ msgstr ""
 "X-Generator: Loco https://localise.biz/\n"
 "X-Loco-Version: 2.4.4; wp-5.5.2"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:498
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:554
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:590
 msgid " - (None)"
 msgstr "- (Aucun)"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:371
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:402
 #, php-format
 msgid " : <a href=\"%s\">%d entries</a>"
 msgstr " : <a href=\"%s\">%d entrées</a>"
 
-#: wpdeeplpro/includes/deeplpro-bulk-actions.php:200
+#: wpdeeplpro/includes/deeplpro-bulk-actions.php:237
 msgid "%d post translated."
 msgstr "%d post traduit"
 
-#: wpdeeplpro/includes/deeplpro-bulk-actions.php:198
+#: wpdeeplpro/includes/deeplpro-bulk-actions.php:235
 msgid "%d posts translated."
 msgstr "%d posts traduits"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:531
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:484
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:517
 #, php-format
 msgid "%s (%d entries)"
 msgstr "%s (%d entrées)"
@@ -67,8 +67,7 @@ msgstr ""
 "age</a>, puis <a target=\"_blank\" href=\"%s\">récupérez votre clef API "
 "ici</a>"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:110
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:107
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:122
 msgid ""
 "<b>Warning:</b> When translating terms, if you're not using Polylang, the "
 "translation will create the translated terms if they're not found"
@@ -76,12 +75,12 @@ msgstr ""
 "<b>Attention:</b> Si vous traduisez des termes sans utiliser Polylang, la "
 "traduction créera tous les termes non trouvés dans la langue cible"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:365
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:396
 #, php-format
 msgid "<li>%s : %s > %s"
 msgstr "<li>%s : %s > %s"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:384
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:415
 #, php-format
 msgid "<li>%s : %s</li>"
 msgstr "<li>%s : %s</li>"
@@ -91,26 +90,25 @@ msgstr "<li>%s : %s</li>"
 msgid "<li><a href=\"%s\">%s</a></li>"
 msgstr "<li><a href=\"%s\">%s</a></li>"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:311
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:335
 #, php-format
 msgid "ACF %s"
 msgstr "ACF %s"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:161
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:176
 msgid "ACF Blocks"
 msgstr "ACF : Blocs"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:168
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:183
 msgid "ACF Custom fields"
 msgstr "ACF : Champs personnalisés"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:320
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:344
 #, php-format
 msgid "ACF group : %s"
 msgstr "Groupe ACF : %s"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:486
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:439
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:470
 msgid "Add bulk actions for these post types"
 msgstr "Proposer la traduction en masse pour ces types de Post"
 
@@ -126,26 +124,25 @@ msgstr "Clef API"
 msgid "API Server"
 msgstr "Serveur API"
 
-#: deepl-configuration.class.php:213
+#: deepl-configuration.class.php:214
 msgid "Append to content"
 msgstr "Ajouter au contenu"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:16
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:29
 msgid ""
 "Are you sure you want to delete this glossary ?. This action is irreversible."
 msgstr ""
 "Êtes vous certain de supprimer ce glossaire ? Cette action est irréversible."
 
-#: admin/deepl-admin-functions.php:47
+#: admin/deepl-admin-functions.php:48
 msgid "Automatic"
 msgstr "Automatique"
 
-#: admin/deepl-admin-functions.php:52
+#: admin/deepl-admin-functions.php:53
 msgid "Automatic (no glossary)"
 msgstr "Automatique (sans glossaire)"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:108
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:105
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:120
 msgid ""
 "Best choice is to have managed translations (like Polylang term translation "
 "management). Next best choice is NOT to translate taxonomies."
@@ -153,18 +150,12 @@ msgstr ""
 "Il est conseillé d'avoir un système de gestion multi langues. Et si non, "
 "d'éviter de traduire les taxonomies"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:93
-msgid "Blocs ACF Featured:"
-msgstr "Blocs ACF Featured :"
-
-#: deepl-configuration.class.php:315
+#: deepl-configuration.class.php:316
 msgid "Bulk translate"
 msgstr "Traduction par lots"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:474
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:479
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:427
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:432
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:458
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:463
 msgid "Bulk translation"
 msgstr "Traduction par lots"
 
@@ -178,31 +169,25 @@ msgstr ""
 "votre site. Si vous avez besoin de l'utiliser sur le site public, cochez "
 "cette case."
 
-#: admin/deepl-admin-functions.php:94
+#: admin/deepl-admin-functions.php:95
 msgid "Clear logs"
 msgstr "Effacer les logs"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:71
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:74
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:89
 msgid "Comments"
 msgstr "Commentaires"
 
-#: deepl-configuration.class.php:316
+#: deepl-configuration.class.php:317
 msgid "Content types"
 msgstr "Types de contenu"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:459
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:412
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:443
 msgid "Create new posts"
 msgstr "Créer de nouveaux posts"
 
 #: settings/wp-improved-settings-wpdeepl.class.php:94
 msgid "Credentials"
 msgstr "Identifiants"
-
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:162
-msgid "Custom fields (ACF)"
-msgstr "Champs personnalisés (ACF)"
 
 #: settings/wp-improved-settings-wpdeepl.class.php:125
 msgid "DeepL credentials"
@@ -229,11 +214,11 @@ msgstr "défaut"
 msgid "Default target language"
 msgstr "Langue de traduction par défaut"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:13
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:26
 msgid "Delete glossaries"
 msgstr "Supprimer les glossaires"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:32
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:45
 #, php-format
 msgid "Delete glossary %s (%d entries)"
 msgstr "Supprimer le glossaire %s (%d entrées)"
@@ -256,20 +241,20 @@ msgstr ""
 msgid "Displayed languages"
 msgstr "Langues affichées"
 
-#: admin/deepl-admin-functions.php:84
+#: admin/deepl-admin-functions.php:85
 msgid "Dont't translate"
 msgstr "Ne pas traduire"
 
-#: wpdeepl.php:94 wpdeeplpro/wpdeeplpro.php:64
+#: wpdeepl.php:98 wpdeeplpro/wpdeeplpro.php:64
 msgid "Error loading WPDeepL"
 msgstr "Erreur de chargement WPDeepL"
 
-#: admin/deepl-admin-functions.php:160
+#: admin/deepl-admin-functions.php:161
 #, php-format
 msgid "File '%s' for %s"
 msgstr "Fichier '%s' pour %s"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:288
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:319
 msgid "File format"
 msgstr "Format de fichier"
 
@@ -296,8 +281,8 @@ msgstr "Niveau de langue : %s"
 msgid "Free API plan (https://api-free.deepl.com)"
 msgstr "Nouveau plan API gratuit "
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:550
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:503
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:559
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:584
 #, php-format
 msgid "From %s to %s"
 msgstr "De %s à %s"
@@ -314,32 +299,38 @@ msgstr ""
 "Traduisez vos articles WordPress avec l'API DeepL Pro (nécessite un compte "
 "DeepL API)"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:523
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:476
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:507
 msgid "Glossaries"
 msgstr "Glossaires"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:538
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:491
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:524
 msgid "Glossaries in use"
 msgstr "Glossaires actifs"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:227
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:258
 #, php-format
 msgid "Glossary %s was created"
 msgstr "Le glossaire %s a été créé"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:102
-msgid "Glossary creation failed"
-msgstr "La création du glossaire a échoué"
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:227
+msgid "Glossary creation: an error was encountered"
+msgstr "Création de glossaire : erreur"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:283
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:314
 msgid "Glossary name"
 msgstr "Nom du glossaire"
 
 #. Author URI of the plugin
 msgid "https://www.fluenx.com/"
 msgstr "https://www.fluenx.com/"
+
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:22
+msgid ""
+"If you're using ACF, please make sure NEVER to name a Fields Group, a Field "
+"or a Block starting with \"block\""
+msgstr ""
+"Si vous utilisez ACF, assurez vous de ne JAMAIS nommer un groupe de champs, "
+"un champ ou un bloc avec un nom commençant par \"block\""
 
 #: settings/wp-improved-settings-wpdeepl.class.php:165
 msgid "informal"
@@ -349,22 +340,19 @@ msgstr "informel"
 msgid "Integration"
 msgstr "Intégration"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:462
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:415
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:446
 msgid "Keep the same timestamp"
 msgstr "Garder le même horodatage"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:497
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:450
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:481
 msgid "Keep the same timestamp on newly created posts"
 msgstr "Garder le même horodatage sur les nouveaux Posts"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:42
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:45
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:60
 msgid "License"
 msgstr "Licence"
 
-#: admin/deepl-admin-functions.php:105
+#: admin/deepl-admin-functions.php:106
 msgid "Log files deleted"
 msgstr "Fichiers log supprimés"
 
@@ -376,7 +364,7 @@ msgstr "Niveau de détail"
 msgid "Logging"
 msgstr "Log d'activité"
 
-#: admin/deepl-admin-functions.php:149
+#: admin/deepl-admin-functions.php:150
 msgid "Logs"
 msgstr "Logs"
 
@@ -384,13 +372,11 @@ msgstr "Logs"
 msgid "Maintenance"
 msgstr "Maintenance"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:75
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:78
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:93
 msgid "Manage comments"
 msgstr "Traduire les commentaires"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:400
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:353
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:377
 msgid "Meta keys"
 msgstr "Champs personnalisés"
 
@@ -410,8 +396,7 @@ msgstr "Priorité de la metabox"
 msgid "Metabox should be displayed on:"
 msgstr "Afficher la métabox sur :"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:153
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:150
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:165
 msgid "Metas"
 msgstr "Métas"
 
@@ -419,11 +404,11 @@ msgstr "Métas"
 msgid "Minimal"
 msgstr "Réduit"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:398
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:429
 msgid "No glossary found"
 msgstr "Aucun glossaire trouvé"
 
-#: admin/deepl-admin-functions.php:176
+#: admin/deepl-admin-functions.php:177
 msgid "No log files"
 msgstr "Pas de fichier log"
 
@@ -435,7 +420,7 @@ msgstr "Aucune réponse du serveur"
 msgid "None"
 msgstr "Aucun"
 
-#: modules/deepl-translate-post.php:273
+#: modules/deepl-translate-post.php:291
 #: wpdeeplpro/includes/deeplpro-comments.php:67
 msgid "Nothing to update"
 msgstr "Rien à mettre à jour"
@@ -468,18 +453,15 @@ msgstr "Description courte"
 msgid "Post title"
 msgstr "Titre"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:483
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:436
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:467
 msgid "Post types for bulk actions"
 msgstr "Types de Post pour la traduction en masse"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:36
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:39
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:54
 msgid "Pro settings"
 msgstr "Pro"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:503
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:456
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:487
 msgid "Publish automatically the new translations"
 msgstr "Publier les nouvelles traductions"
 
@@ -487,7 +469,7 @@ msgstr "Publier les nouvelles traductions"
 msgid "Regular paid API Plan (https://api.deepl.com/v2/)"
 msgstr "Abonnement API complet (https://api.deepl.com/v2/)"
 
-#: deepl-configuration.class.php:212
+#: deepl-configuration.class.php:213
 msgid "Replace content"
 msgstr "Remplacer le contenu"
 
@@ -495,7 +477,7 @@ msgstr "Remplacer le contenu"
 msgid "Request done in: %f milliseconds"
 msgstr "Requête effectuée en %f millisecondes"
 
-#: deepl-configuration.class.php:318
+#: deepl-configuration.class.php:319
 msgid "Select which kind of content you want to be able to translate"
 msgstr "Choisir les types de contenu que vous voulez traduire"
 
@@ -511,32 +493,37 @@ msgstr ""
 "fonction \"Duplicate Post\" de Polylang Pro, ou un plugin de \"Duplicate "
 "post\" peut s'avérer utile."
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:86
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:89
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:104
 msgid "SEO slug:"
 msgstr "Slug SEO :"
 
-#: wpdeepl.php:122 wpdeeplpro/wpdeeplpro.php:72
+#: wpdeepl.php:126 wpdeeplpro/wpdeeplpro.php:72
 msgid "Settings"
 msgstr "Réglages"
 
-#: deepl-configuration.class.php:320
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:513
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:466
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:596
+msgid "Show first entries of each glossary"
+msgstr "Montrer le début de la liste"
+
+#: deepl-configuration.class.php:321
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:497
 msgid "Show these target languages in bulk menu"
 msgstr "Afficher ces languages dans le menu d'Edition en masse"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:294
-#: wpdeeplpro/includes/deeplpro-bulk-actions.php:46
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:545
+msgid "Showing first %d entries"
+msgstr "Affichage des premières %d traductions"
+
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:325
+#: wpdeeplpro/includes/deeplpro-bulk-actions.php:51
 msgid "Source language"
 msgstr "Langue source"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:82
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:85
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:100
 msgid "Specific fields"
 msgstr "Champs spécifiques"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:296
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:327
 msgid "Target language"
 msgstr "Langue cible"
 
@@ -545,14 +532,12 @@ msgstr "Langue cible"
 msgid "Target language '%s' not valid"
 msgstr "Langue cible '%s' non valide"
 
-#: deepl-configuration.class.php:319
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:510
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:463
+#: deepl-configuration.class.php:320
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:494
 msgid "Target languages for bulk actions"
 msgstr "Langues cibles pour la traduction en masse"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:113
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:110
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:125
 msgid "Taxonomies"
 msgstr "Taxonomies"
 
@@ -561,9 +546,13 @@ msgstr "Taxonomies"
 msgid "The DeepL plugin is not fully configured yet: <ul>%s</ul>"
 msgstr "Le plugin DeepL n'est pas encore configuré : <ul>%s</ul>"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:279
-msgid "The file must be either in CSV or TSV format"
-msgstr "Le fichier doit être au format CSV ou au format TSV"
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:310
+msgid ""
+"The file must be either in CSV or TSV format. CSV entries must be separated "
+"with commas (,)."
+msgstr ""
+"Le fichier doit être au format CSV ou TSV. Les fichiers CSV doivent être "
+"séparés par des virgules."
 
 #: modules/deepl-translate-post.php:11
 msgid "The translation has failed. See logs for details"
@@ -573,61 +562,47 @@ msgstr "La traduction a échoué. Merci de vérifier les logs"
 msgid "This post has been translated."
 msgstr "Ce post a été traduit"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:463
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:416
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:447
 msgid "Time stamp to the time of translation"
 msgstr "Horodater à l'heure de la traduction"
 
-#: admin/deepl-metabox.php:119
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:88
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:95
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:91
+#: admin/deepl-metabox.php:119 wpdeeplpro/admin/deeplpro-admin-hooks.php:106
 msgid "Translate"
 msgstr "Traduire"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:467
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:420
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:451
 msgid "Translate and publish"
 msgstr "Traduire et publier"
 
-#: deepl-configuration.class.php:317
+#: deepl-configuration.class.php:318
 msgid "Translate contents"
 msgstr "Traduire ces types"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:320
-#, php-format
-msgid "Translate custom fields (ACF) (%s):"
-msgstr "Traduire les champs ACF (%s):"
-
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:433
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:386
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:414
 #, php-format
 msgid "Translate metas (%s):"
 msgstr "Traduire les champs personnalisés (%s):"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:458
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:411
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:442
 msgid "Translate posts in place"
 msgstr "Traduire et remplacer le post"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:143
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:140
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:155
 #, php-format
 msgid "Translate terms (%s):"
 msgstr "Traduire les termes (%s):"
 
-#: deepl-configuration.class.php:313
-#: wpdeeplpro/includes/deeplpro-bulk-actions.php:84
+#: deepl-configuration.class.php:314
+#: wpdeeplpro/includes/deeplpro-bulk-actions.php:90
 #, php-format
 msgid "Translate to %s"
 msgstr "Traduire en %s"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:466
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:419
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:450
 msgid "Translate to drafts"
 msgstr "Traduire en brouillons"
 
-#: deepl-configuration.class.php:314
+#: deepl-configuration.class.php:315
 msgid "Translated %d posts."
 msgstr "%d éléments traduits"
 
@@ -645,17 +620,17 @@ msgstr "Traduction"
 msgid "Translation by default"
 msgstr "Traduction par défaut"
 
-#: modules/deepl-translate-post.php:278
+#: modules/deepl-translate-post.php:296
 #: wpdeeplpro/includes/deeplpro-comments.php:72
 msgid "Translation error"
 msgstr "Erreur de traduction"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:251
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:282
 #, php-format
 msgid "Unable to create glossary: %s"
 msgstr "Impossible de créer le glossaire : %s"
 
-#: wpdeeplpro/client/deeplapi-glossary-functions.php:274
+#: wpdeeplpro/client/deeplapi-glossary-functions.php:305
 msgid "Upload a glossary"
 msgstr "Téléverser un glossaire"
 
@@ -663,13 +638,11 @@ msgstr "Téléverser un glossaire"
 msgid "Usage"
 msgstr "Utilisation"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:491
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:444
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:475
 msgid "What to do when bulk translating ?"
 msgstr "Que faire pour les traductions en masse ?"
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:106
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:103
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:118
 msgid ""
 "When dealing with unmanaged translated hierarchical taxonomies (like Post "
 "Categories with no relationship between translations), this can create "
@@ -688,8 +661,7 @@ msgstr ""
 "L'extension WPDeepL Pro a besoin du plugin <a target=\"_blank\" href=\"%s\">"
 "WPDeepL</a> installé et activé pour fonctionner."
 
-#: wpdeeplpro/admin/deeplpro-admin-hooks.20240224.php:49
-#: wpdeeplpro/admin/deeplpro-admin-hooks.php:52
+#: wpdeeplpro/admin/deeplpro-admin-hooks.php:67
 msgid ""
 "You can get your license key on <a target=\"_blank\" href=\"https:"
 "//solutions.fluenx.com/mon-compte/\">your account</a>"

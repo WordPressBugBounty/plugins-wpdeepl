@@ -4,11 +4,12 @@ function wpdeepl_test_admin() {
 
 
 	return;
+	/*
 	$glossary_id = 'da005df2-fb26-4165-8310-b07c9cc1b492';
 	$list = deepl_listGlossaryEntries( $glossary_id, 'tsv' );
 	plouf( $list );
 	die('okazeaze6a8z4e6e4az4');
-
+*/
 	//deepl_deleteGlosssary(  );
 
 

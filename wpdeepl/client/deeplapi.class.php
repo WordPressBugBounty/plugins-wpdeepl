@@ -55,6 +55,10 @@ abstract class DeepLApi extends DeepLData {
 		$this->cache_dir = $this->getCacheDirectory();
 	}
 
+	public function allowCache( $allow_cache ) {
+		$this->allow_cache = filter_var( $allow_cache, FILTER_VALIDATE_BOOLEAN );
+	}
+	
 	public function wasItCached() {
 		return $this->response_type === 'cache';
 	}
@@ -429,7 +433,7 @@ abstract class DeepLApi extends DeepLData {
 
 		$remoteURL = $this->getEndPointURL();
 		//if( $args['query'] ) 			$remoteURL .= '?' . $args['query'];
-		//plouf( $args, "REQUESTING URL = '$url'" );		 die( '6ze846az6e646eok' );
+
 
 		$curl_string = 'curl -X ' . $args['method'] . " '$remoteURL'\n";
 		foreach( $args['headers'] as $key => $value ) {
@@ -443,6 +447,7 @@ abstract class DeepLApi extends DeepLData {
 //		plouf( $args, $remoteURL );		die('oazea4ze9684e84azek');
 		
 		$response = wp_remote_get( $remoteURL, $args );
+		//plouf( $args, $remoteURL ); plouf( $response ); die('ok');
 		if ( is_wp_error( $response ) ) {
 			$this->response = $response->get_error_message();
 		} else {

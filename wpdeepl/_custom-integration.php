@@ -2,7 +2,7 @@
 
 /**
  * 
- * To add specific data / unique custom meta to the translation, add this code to your theme/functions.php
+ * To add specific data / unique custom meta to the translation, add this code to your theme/functions.php. Or rename this file to "custom-integration.php" in the wpdeepl folder.
  * Sample : the metakey is 'hotelwp_meta' and the value is encoded in json, we need to translate 'tagline' and 'alt_title' from the array of data
  * */
 

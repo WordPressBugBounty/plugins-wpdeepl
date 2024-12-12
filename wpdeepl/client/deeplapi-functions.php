@@ -1,8 +1,9 @@
 <?php
 
-function deepl_translate( $source_lang = false, $target_lang = false, $strings = array(), $cache_prefix = '' ) {
+function deepl_translate( $source_lang = false, $target_lang = false, $strings = array(), $cache_prefix = '', $allow_cache = true  ) {
 		$DeepLApiTranslate = new DeepLApiTranslate();
 		$DeepLApiTranslate->setCachePrefix( $cache_prefix );
+		$DeepLApiTranslate->allowCache( $allow_cache );
 
 		if ( $source_lang ) {
 			$DeepLApiTranslate->setLangFrom( $source_lang );
