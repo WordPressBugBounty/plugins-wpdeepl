@@ -1,5 +1,5 @@
 <?php
-
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 function deepl_translate( $source_lang = false, $target_lang = false, $strings = array(), $cache_prefix = '', $allow_cache = true  ) {
 		$DeepLApiTranslate = new DeepLApiTranslate();
 		$DeepLApiTranslate->setCachePrefix( $cache_prefix );
@@ -11,6 +11,7 @@ function deepl_translate( $source_lang = false, $target_lang = false, $strings =
 
 		//var_dump($target_lang);		die('okzerzererrzer');
 		if ( !$DeepLApiTranslate->setLangTo( $target_lang ) ) {
+			/* translators: target language asked */
 			return new WP_Error( sprintf( __( "Target language '%s' not valid", 'wpdeepl' ), $target_lang ) );
 		}
 
@@ -21,7 +22,7 @@ function deepl_translate( $source_lang = false, $target_lang = false, $strings =
 		$DeepLApiTranslate = apply_filters('deepl_translate_DeepLApiTranslate_before', $DeepLApiTranslate );
 
 		//echo "\n pour lang $target_lang , formality = " . DeepLConfiguration::getFormalityLevel( $target_lang) ;
-//		plouf($DeepLApiTranslate);		die('oazeaz+e48az4ea698k');
+//		wpdeepl_debug_display($DeepLApiTranslate);		die('oazeaz+e48az4ea698k');
 		
 		$translations = $DeepLApiTranslate->getTranslations( $strings );
 
@@ -45,12 +46,12 @@ function deepl_translate( $source_lang = false, $target_lang = false, $strings =
 
 function deepl_show_usage() {
 	?>
-		<h3><?php _e( 'Usage', 'wpdeepl' ); ?></h3>
+		<h3><?php esc_html_e( 'Usage', 'wpdeepl' ); ?></h3>
 		<?php
 		$DeepLApiUsage = new DeepLApiUsage();
 		$usage = $DeepLApiUsage->request();
 
-		//plouf($usage);		plouf($DeepLApiUsage);
+		//wpdeepl_debug_display($usage);		wpdeepl_debug_display($DeepLApiUsage);
 
 		if ( $usage && is_array( $usage ) && array_key_exists( 'character_count', $usage ) && array_key_exists( 'character_limit', $usage )) :
 			$ratio = round( 100 * ( $usage['character_count'] / $usage['character_limit'] ), 3 );
@@ -58,19 +59,39 @@ function deepl_show_usage() {
 
 		?>
 			<div class="progress-bar blue">
-				<span style="width: <?php echo round( (100 - $ratio ), 0 ); ?>%"><b><?php printf( __( '%s characters remaining', 'wpdeepl' ), number_format( $left_chars )); ?></b></span>
+				<span style="width: <?php echo esc_attr( round( (100 - absint( $ratio ) ), 0 ) ); ?>%"><b><?php 
+				echo esc_html(
+				    sprintf(
+				        /* translators: characters remaining */
+				        __( '%s characters remaining', 'wpdeepl' ),
+				        // L'argument est déjà sécurisé par esc_html(), on le laisse tel quel.
+				        number_format( $left_chars ) 
+				    )
+				); ?></b></span>
 				<div class="progress-text"><?php
-				printf( __( '%s / %s characters translated', 'wpdeepl' ), number_format_i18n( $usage['character_count'] ), number_format_i18n( $usage['character_limit'] ) );
-				 echo " - " . ( $ratio ); ?> %</div>
-				 <small class="request_time"><?php printf( __( 'Request done in: %f milliseconds', 'wpdeepl' ), $DeepLApiUsage->getRequestTime( true )) ?></small>
+				echo esc_html(
+					sprintf( 
+					/* translators: characters translated / limit */
+					__( '%1$s / %2$s characters translated', 'wpdeepl' ), 
+					esc_html( number_format_i18n( $usage['character_count'] ) ), 
+					esc_html( number_format_i18n( $usage['character_limit'] ) ) 
+				));
+				 echo " - " . esc_html( $ratio ); ?> %</div>
+				 <small class="request_time"><?php 
+				 echo esc_html( sprintf( 
+				 	/* translators: time for the request */
+				 	__( 'Request done in: %f milliseconds', 'wpdeepl' ), 
+				 	esc_html( $DeepLApiUsage->getRequestTime( true ) )
+				 )); ?></small>
 			</div>
 		<?php
 		else :
-			_e('No response from the server', 'wpdeepl');
-			echo '<br />';
-			printf(__('Did you select the right server ? If yes, check your plan on <a href="%s">DeepL Pro website</a>. "DeepL API" should be included in it.', 'wpdeepl' ),
+			esc_html_e('No response from the server', 'wpdeepl');
+			?><br /><?php
+			/* translators: link to the DeepL website */
+			echo wp_kses_post( sprintf(__('Did you select the right server ? If yes, check your plan on <a href="%s">DeepL Pro website</a>. "DeepL API" should be included in it.', 'wpdeepl' ),
 				'https://www.deepl.com/pro-account/plan'
-			);
+			));
 
 		endif;
 }

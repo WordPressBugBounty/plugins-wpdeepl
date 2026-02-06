@@ -1,15 +1,17 @@
 <?php
-namespace WP_Improved_Settings;
+namespace wpdeepl_WP_Improved_Settings;
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 /**
  * Abstract Settings API Class
  * From abstract-wc-settings-api.php
  *
  *
- * @package WP_Improved_Settings
- * @version 20200320
+ * @package wpdeepl_WP_Improved_Settings
+ * @version 20251205
  *
+ * 20251205 Version 2.0 - PCP compliant, architecture extensible
  * 20200320 ajout des setting en tableau
- *  * 20190705 : default value for text field
+ * 20190705 : default value for text field
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -17,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * WC_Improved_Settings_API class.
  */
-if ( !class_exists( 'WP_Improved_Settings\WC_Improved_Settings_API' ) ) {
+if ( !class_exists( 'wpdeepl_WP_Improved_Settings\WC_Improved_Settings_API' ) ) {
 class WC_Improved_Settings_API {
 	/**
 	 * The plugin ID. Used for option names.
@@ -34,25 +36,36 @@ class WC_Improved_Settings_API {
 	public $id = '';
 
 	/**
+	 * Feature flags for version control
+	 *
+	 * @var array
+	 */
+	protected $features = array(
+		'cache_enabled' => false,      // v2.1+
+		'export_enabled' => false,     // Sécurité WordPress.org  
+		'advanced_crons' => false,     // v2.2+
+	);
+
+	/**
 	 * Validation errors.
 	 *
 	 * @var array of strings
 	 */
-	public $errors = array();
+	protected $errors = array();
 
 	/**
 	 * Setting values.
 	 *
 	 * @var array
 	 */
-	public $settings = array();
+	protected $settings = array();
 
 	/**
 	 * Form option fields.
 	 *
 	 * @var array
 	 */
-	public $form_fields = array();
+	protected $form_fields = array();
 
 	/**
 	 * The posted settings data. When empty, $_POST data will be used.
@@ -61,30 +74,51 @@ class WC_Improved_Settings_API {
 	 */
 	protected $data = array();
 
-	public $settingsStructure = array();
+	/**
+	 * Settings structure from configuration
+	 *
+	 * @var array
+	 */
+	protected $settingsStructure = array();
 	
 	public function __construct( $plugin_id , $settingsStructure ) {
 		$this->plugin_id = $plugin_id .'_';
 		$this->settingsStructure = $settingsStructure;
 		$this->init_form_fields();
-		//add_action( 'woocommerce_update_options_' . $this->id, array( $this, 'process_admin_options' ) );
-//				add_action( 'woocommerce_update_options', array( $this, 'test_action' ) );
 	}
 
-/**
+	/**
+	 * Get feature flag status
+	 *
+	 * @param string $feature Feature name
+	 * @return bool Feature enabled status
+	 */
+	public function is_feature_enabled( $feature ) {
+		return isset( $this->features[$feature] ) ? $this->features[$feature] : false;
+	}
+
+	/**
+	 * Set feature flag
+	 *
+	 * @param string $feature Feature name
+	 * @param bool $enabled Feature status
+	 */
+	public function set_feature( $feature, $enabled ) {
+		$this->features[$feature] = (bool) $enabled;
+	}
+
+	/**
 	 * Initialise settings form fields.
 	 *
 	 * Add an array of fields to be displayed on the gateway's settings screen.
 	 *
 	 * @since 1.0.0
 	 */
-
-
-	public function init_form_fields() {
+	protected function init_form_fields() {
 		if ( !$this->settingsStructure || !count($this->settingsStructure) ) {
 			return false;
 		}
-		//plouf( $this->settingsStructure );die('okozerkozerk');
+		//wpdeepl_debug_display( $this->settingsStructure );die('okozerkozerk');
 		foreach ( $this->settingsStructure as $tab_id => $tab_data ) {
 			foreach ( $tab_data['sections'] as $section_id => $section_data ) {
 				if( isset( $section_data['fields'] ) ) foreach ( $section_data['fields'] as $field ) {
@@ -103,16 +137,24 @@ class WC_Improved_Settings_API {
 		}
 	}
 
-	function process_admin_options() {
+	public function process_admin_options() {
+		// Vérification nonce pour méthode publique
+		if ( ! $this->verify_settings_nonce() ) {
+			wp_die( esc_html__( 'Security check failed', 'wpdeepl' ) );
+		}
+
 		$post_data = $this->get_post_data();
 
-		$current_tab = $post_data['tab'];
+		$current_tab = sanitize_key( $post_data['tab'] ?? '' );
+		if ( empty( $current_tab ) ) {
+			return false;
+		}
 
 		if ( method_exists( $this, 'before_save' ) ) {
 			$this->before_save();
 		}
 
-		//plouf($this->form_fields, "fields");		plouf($post_data, "POST");		die('oaz4ea6zea4e6a846ek');
+		//wpdeepl_debug_display($this->form_fields, "fields");		wpdeepl_debug_display($post_data, "POST");		die('oaz4ea6zea4e6a846ek');
 
 
 		foreach ( $this->form_fields as $field_key => $field ) {
@@ -120,38 +162,65 @@ class WC_Improved_Settings_API {
 				continue;
 			}
 
-			//echo "\n tab ok ... key $field_key ";			plouf($post_data[$field_key]);
 			if ( isset( $post_data[$field_key] ) ) {
-				$field_value = $post_data[$field_key];
-
-				if ( $field['type'] == 'checkbox' && $field_value == 1 ) {
-					$field_value = 'yes';
-				}
-				if ( $field['type'] == 'array' ) {
-					//plouf($post_data);
-					foreach ( $field_value as $i => $field_input ) {
-						if ( strlen( implode( '', $field_input )) == 0 ) {
-							unset( $field_value[$i] );
-						}
-					}
-
-				}
-				if ( $field['type'] == 'textarea' || $field['type'] == 'text' ) {
-					$field_value = stripslashes( $field_value );
-				}
+				$field_value = $this->sanitize_field_value( $post_data[$field_key], $field );
 				update_option( $field_key, $field_value );
-			}
-			else {
+			} else {
 				update_option($field_key, false);
 			}
 		}
 
-		//plouf($post_data, " post data");				plouf( $this->form_fields );die('okaz8e7aze7a57ea65e');
-
 		if ( method_exists( $this, 'on_save' ) ) {
 			$this->on_save();
 		}
-		//plouf( $post_data );				plouf( $this->form_fields );				die( 'okzeprjio' );
+		return true;
+	}
+
+	/**
+	 * Sanitize field value based on field type
+	 *
+	 * @param mixed $value Field value
+	 * @param array $field Field configuration
+	 * @return mixed Sanitized value
+	 */
+	protected function sanitize_field_value( $value, $field ) {
+		$field_type = $field['type'] ?? 'text';
+
+		switch ( $field_type ) {
+			case 'checkbox':
+				return $value == 1 ? 'yes' : 'no';
+			case 'multiselect':
+			case 'array':
+				if ( is_array( $value ) ) {
+					// Sanitize each array element and remove empty entries
+					$sanitized = array();
+					foreach ( $value as $i => $field_input ) {
+						if ( is_array( $field_input ) ) {
+							if ( strlen( implode( '', $field_input ) ) > 0 ) {
+								$sanitized[$i] = array_map( 'sanitize_text_field', $field_input );
+							}
+						} else {
+							$sanitized_value = sanitize_text_field( $field_input );
+							if ( strlen( $sanitized_value ) > 0 ) {
+								$sanitized[] = $sanitized_value;
+							}
+						}
+					}
+					return $sanitized;
+				}
+				return $value;
+			case 'textarea':
+				return sanitize_textarea_field( $value );
+			case 'select':
+			case 'radio':
+			case 'text':
+			default:
+				// Handle arrays that might slip through (shouldn't happen normally)
+				if ( is_array( $value ) ) {
+					return array_map( 'sanitize_text_field', $value );
+				}
+				return sanitize_text_field( $value );
+		}
 	}
 
 /**
@@ -160,25 +229,21 @@ class WC_Improved_Settings_API {
  * @param string $key Field key.
  * @return string
  */
-	public function get_field_key( $key ) {
-		//echo "<br /> KEY de $key = " . $this->plugin_id . $this->id . '_' . $key;
-			//return $this->plugin_id . $this->id . '_' . $key;
-
+	protected function get_field_key( $key ) {
 		if ( preg_match('#^([\w_]+)\[\d+\]$#', $key, $match ) ) {
 			$key = $match[1];
 		}
 		return $this->plugin_id . $key;
-	//	return $this->plugin_id . $this->id . '_' . $key;
 	}
 
-	public function get_sub_field_key( $key ) {
+	protected function get_sub_field_key( $key ) {
 		if ( preg_match('#^([\w_]+)\[(\d+)\]$#', $key, $match ) ) {
 			return $match[2];
 		}
 		return false;
-
 	}
-	public function get_raw_field_key( $key ) {
+	
+	protected function get_raw_field_key( $key ) {
 		return $this->plugin_id . $key;
 	}
 
@@ -190,7 +255,7 @@ class WC_Improved_Settings_API {
 
 		$this->settings[ $key ] = $value;
 
-		return update_option( $this->get_option_key(), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );*/
+		return update_option( $this->get_option_key(), apply_filters( 'wpimproved_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );*/
 		return update_option( $this->get_field_key( $key ), $value );
 	}
 
@@ -203,26 +268,8 @@ class WC_Improved_Settings_API {
  * @param mixed $empty_value Value when empty.
  * @return string The value specified for the option or a default value for the option.
  */
-
 	public function get_option( $key, $empty_value = null ) {
-		//echo "\n<br /> vALUE de '$key' ( option = '" . $this->get_field_key( $key ) . '" ) = "' . get_option( $this->get_field_key( $key ) ).'"';
 		return get_option( $this->get_field_key( $key ) );
-
-		/*	if ( empty( $this->settings ) ) {
-			$this->init_settings();
-		}
-
-		// Get option default if unset.
-		if ( ! isset( $this->settings[ $key ] ) ) {
-			$form_fields = $this->get_form_fields();
-			$this->settings[ $key ] = isset( $form_fields[ $key ] ) ? $this->get_field_default( $form_fields[ $key ] ) : '';
-		}
-
-		if ( ! is_null( $empty_value ) && '' === $this->settings[ $key ] ) {
-			$this->settings[ $key ] = $empty_value;
-		}
-
-		return $this->settings[ $key ];*/
 	}
 
 	public function generate_radio_html( $key, $data ) {
@@ -249,26 +296,24 @@ class WC_Improved_Settings_API {
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc">
-				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo $this->get_tooltip_html( $data );  ?></label>
+				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo wp_kses_post( $this->get_tooltip_html( $data ) );  ?></label>
 			</th>
 			<td class="forminp">
 				<fieldset>
 					<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
 					<?php
 					$stored_value = $this->get_option( $key );
-					if ( !$stored_value && isset( $data['default'] ) ) {
-						$stored_value = $data['default'];
+					if ( !$stored_value && isset( $data['wpdeepl'] ) ) {
+						$stored_value = $data['wpdeepl'];
 					}
 
 					if ( isset( $data['values'] ) ) foreach ( $data['values'] as $value => $label ) :
-						//echo " V $value / S $stored_value";
-
 					 ?>
-					<input <?php disabled( $data['disabled'], true ); ?> class="<?php echo esc_attr( $data['class'] ); ?>" type="radio" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ) . '_' . sanitize_title( $value );?>" style="<?php echo esc_attr( $data['css'] ); ?>" value="<?php echo esc_attr($value); ?>" <?php checked( $stored_value, $value ); ?> <?php echo $this->get_custom_attribute_html( $data );  ?> />
+					<input <?php disabled( $data['disabled'], true ); ?> class="<?php echo esc_attr( $data['class'] ); ?>" type="radio" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ) . '_' . esc_attr( sanitize_title( $value ) );?>" style="<?php echo esc_attr( $data['css'] ); ?>" value="<?php echo esc_attr($value); ?>" <?php checked( $stored_value, $value ); ?> <?php echo wp_kses_post( $this->get_custom_attribute_html( $data ) );  ?> />
 					<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $label ); ?></label>
 					<br />
 				<?php endforeach; ?>
-					<?php echo $this->get_description_html( $data );  ?>
+					<?php echo wp_kses_post( $this->get_description_html( $data ) );  ?>
 				</fieldset>
 			</td>
 		</tr>
@@ -297,20 +342,20 @@ class WC_Improved_Settings_API {
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc">
-				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo $this->get_tooltip_html( $data );  ?></label>
+				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo wp_kses_post( $this->get_tooltip_html( $data ) );  ?></label>
 			</th>
 			<td class="forminp">
 				<fieldset>
 					<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
 					<?php
 					$stored_value = $this->get_option( $key );
-					if ( !$stored_value && isset( $data['default'] ) ) {
-						$stored_value = $data['default'];
+					if ( !$stored_value && isset( $data['wpdeepl'] ) ) {
+						$stored_value = $data['wpdeepl'];
 					}
 
-					echo ( $data['raw_html'] ); ?>
+					echo wp_kses_post( $data['raw_html'] ); ?>
 					<br/>
-					<?php echo $this->get_description_html( $data );  ?>
+					<?php echo wp_kses_post( $this->get_description_html( $data ) );  ?>
 				</fieldset>
 			</td>
 		</tr>
@@ -325,8 +370,8 @@ class WC_Improved_Settings_API {
 	 *
 	 * @return array of options
 	 */
-	public function get_form_fields() {
-		return apply_filters( 'woocommerce_settings_api_form_fields_' . $this->id, array_map( array( $this, 'set_defaults' ), $this->form_fields ) );
+	protected function get_form_fields() {
+		return apply_filters( 'wpdeepl_wpimproved_settings_api_form_fields_' . $this->id, array_map( array( $this, 'set_defaults' ), $this->form_fields ) );
 	}
 
 	/**
@@ -346,6 +391,7 @@ class WC_Improved_Settings_API {
 	 * Output the admin options table.
 	 */
 	public function admin_options() {
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- generate_settings_html retourne du HTML déjà sécurisé
 		echo '<table class="form-table">' . $this->generate_settings_html( $this->get_form_fields(), false ) . '</table>';
 	}
 
@@ -367,7 +413,7 @@ class WC_Improved_Settings_API {
 	 * @param array $field Field key.
 	 * @return string
 	 */
-	public function get_field_type( $field ) {
+	protected function get_field_type( $field ) {
 		return empty( $field['type'] ) ? 'text' : $field['type'];
 	}
 
@@ -377,8 +423,8 @@ class WC_Improved_Settings_API {
 	 * @param array $field Field key.
 	 * @return string
 	 */
-	public function get_field_default( $field ) {
-		return empty( $field['default'] ) ? '' : $field['default'];
+	protected function get_field_default( $field ) {
+		return empty( $field['wpdeepl'] ) ? '' : $field['wpdeepl'];
 	}
 
 	/**
@@ -392,7 +438,7 @@ class WC_Improved_Settings_API {
 	public function get_field_value( $key, $field, $post_data = array() ) {
 		$type = $this->get_field_type( $field );
 		$field_key = $this->get_field_key( $key );
-		$post_data = empty( $post_data ) ? $_POST : $post_data; // WPCS: CSRF ok, input var ok.
+		$post_data = empty( $post_data ) ? $this->get_post_data() : $post_data;
 		$value = isset( $post_data[ $field_key ] ) ? $post_data[ $field_key ] : null;
 
 		if ( isset( $field['sanitize_callback'] ) && is_callable( $field['sanitize_callback'] ) ) {
@@ -423,6 +469,28 @@ class WC_Improved_Settings_API {
 	}
 
 	/**
+	 * Verify settings nonce for security
+	 *
+	 * @return bool
+	 */
+	protected function verify_settings_nonce() {
+		return isset( $_POST['_wpdeepl_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpdeepl_nonce'] ) ), 'wpdeepl_save_settings' );
+	}
+
+	/**
+	 * Recursively sanitize POST data
+	 *
+	 * @param mixed $data Data to sanitize.
+	 * @return mixed Sanitized data.
+	 */
+	protected function sanitize_post_data_recursive( $data ) {
+		if ( is_array( $data ) ) {
+			return array_map( array( $this, 'sanitize_post_data_recursive' ), $data );
+		}
+		return sanitize_text_field( $data );
+	}
+
+	/**
 	 * Returns the POSTed data, to be used to save the settings.
 	 *
 	 * @return array
@@ -431,46 +499,11 @@ class WC_Improved_Settings_API {
 		if ( ! empty( $this->data ) && is_array( $this->data ) ) {
 			return $this->data;
 		}
-
-		return $_POST; // WPCS: CSRF ok, input var ok.
+		
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- this here is where we clean POST data
+		return $this->sanitize_post_data_recursive( wp_unslash( $_POST ) );
 	}
 
-	/**
-	 * Update a single option.
-	 *
-	 * @since 3.4.0
-	 * @param string $key Option key.
-	 * @param mixed $value Value to set.
-	 * @return bool was anything saved?
-	 */
-
-	/**
-	 * Processes and saves options.
-	 * If there is an error thrown, will continue to save and validate fields, but will leave the erroring field out.
-	 *
-	 * @return bool was anything saved?
-	 */
-	/*
-	public function process_admin_options() {
-		$this->init_settings();
-
-		$post_data = $this->get_post_data();
-
-		//plouf($post_data);		die('ijzeirj');
-
-		foreach ( $this->get_form_fields() as $key => $field ) {
-			if ( 'title' !== $this->get_field_type( $field ) ) {
-				try {
-					$this->settings[ $key ] = $this->get_field_value( $key, $field, $post_data );
-				} catch ( Exception $e ) {
-					$this->add_error( $e->getMessage() );
-				}
-			}
-		}
-
-		return update_option( $this->get_option_key(), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
-	}
-*/
 	/**
 	 * Add an error message for display in admin on save.
 	 *
@@ -516,7 +549,7 @@ class WC_Improved_Settings_API {
 		// If there are no settings defined, use defaults.
 		if ( ! is_array( $this->settings ) ) {
 			$form_fields = $this->get_form_fields();
-			$this->settings = array_merge( array_fill_keys( array_keys( $form_fields ), '' ), wp_list_pluck( $form_fields, 'default' ) );
+			$this->settings = array_merge( array_fill_keys( array_keys( $form_fields ), '' ), wp_list_pluck( $form_fields, 'wpdeepl' ) );
 		}
 	}
 
@@ -536,12 +569,12 @@ class WC_Improved_Settings_API {
 			//$form_fields = $this->get_form_fields();
 		}
 
-		//plouf($form_fields, " form fields");
+		//wpdeepl_debug_display($form_fields, " form fields");
 
 		$html = '';
 		foreach ( $form_fields as $field ) {
 			$type = $this->get_field_type( $field );
-			//plouf($field, " DONC TYPE = '$type'");
+			//wpdeepl_debug_display($field, " DONC TYPE = '$type'");
 
 			if ( method_exists( $this, 'generate_' . $type . '_html' ) ) {
 				$html .= $this->{'generate_' . $type . '_html'}( $field['id'], $field );
@@ -551,8 +584,8 @@ class WC_Improved_Settings_API {
 		}
 
 		if ( $echo ) {
-			// not escaped
-			echo ( $html );
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML already escaped in generate_*_html methods
+			echo $html;
 		} else {
 			return $html;
 		}
@@ -564,7 +597,7 @@ class WC_Improved_Settings_API {
 	 * @param array $data Data for the tooltip.
 	 * @return string
 	 */
-	public function get_tooltip_html( $data ) {
+	protected function get_tooltip_html( $data ) {
 		if ( true === $data['desc_tip'] ) {
 			$tip = $data['description'];
 		} elseif ( ! empty( $data['desc_tip'] ) ) {
@@ -582,7 +615,7 @@ class WC_Improved_Settings_API {
 	 * @param array $data Data for the description.
 	 * @return string
 	 */
-	public function get_description_html( $data ) {
+	protected function get_description_html( $data ) {
 		if ( true === $data['desc_tip'] ) {
 			$description = '';
 		} elseif ( ! empty( $data['desc_tip'] ) ) {
@@ -602,7 +635,7 @@ class WC_Improved_Settings_API {
 	 * @param array $data Field data.
 	 * @return string
 	 */
-	public function get_custom_attribute_html( $data ) {
+	protected function get_custom_attribute_html( $data ) {
 		$custom_attributes = array();
 
 		if ( ! empty( $data['custom_attributes'] ) && is_array( $data['custom_attributes'] ) ) {
@@ -627,7 +660,7 @@ class WC_Improved_Settings_API {
 		$defaults = array(
 			'title' => '',
 			'disabled' => false,
-			'default'	=> false,
+			'wpdeepl'	=> false,
 			'class' => '',
 			'css' => '',
 			'placeholder' => '',
@@ -643,20 +676,19 @@ class WC_Improved_Settings_API {
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc">
-				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo $this->get_tooltip_html( $data );  ?></label>
+				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo wp_kses_post( $this->get_tooltip_html( $data ) );  ?></label>
 			</th>
 			<td class="forminp">
 				<fieldset>
 					<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
 					<input class="input-text regular-input <?php echo esc_attr( $data['class'] ); ?>" type="<?php echo esc_attr( $data['type'] ); ?>" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" value="<?php
-					if ( esc_attr( $this->get_option( $key ) ) ) {
+					if ( $this->get_option( $key ) ) {
 						echo esc_attr( $this->get_option( $key ) );
 					}
-					elseif ( $data['default'] ) {
-						// not escaped
-						echo ( $data['default'] );
-					} ?>" placeholder="<?php echo esc_attr( $data['placeholder'] ); ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo $this->get_custom_attribute_html( $data );  ?> />
-					<?php echo $this->get_description_html( $data );  ?>
+					elseif ( $data['wpdeepl'] ) {
+						echo esc_attr( $data['wpdeepl'] );
+					} ?>" placeholder="<?php echo esc_attr( $data['placeholder'] ); ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo wp_kses_post( $this->get_custom_attribute_html( $data ) );  ?> />
+					<?php echo wp_kses_post( $this->get_description_html( $data ) );  ?>
 				</fieldset>
 			</td>
 		</tr>
@@ -676,12 +708,12 @@ class WC_Improved_Settings_API {
 	public function generate_array_html( $key, $data ) {
 
 		$field_key = $this->get_field_key( $key );
-		//plouf($data, "data pzeijezpi");
-		//plouf($key, "key, field key $field_key");
+		//wpdeepl_debug_display($data, "data pzeijezpi");
+		//wpdeepl_debug_display($key, "key, field key $field_key");
 		$defaults = array(
 			'title' => '',
 			'disabled' => false,
-			'default'	=> false,
+			'wpdeepl'	=> false,
 			'class' => '',
 			'css' => '',
 			'placeholder' => '',
@@ -698,7 +730,7 @@ class WC_Improved_Settings_API {
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc">
-				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo $this->get_tooltip_html( $data );  ?></label>
+				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo wp_kses_post( $this->get_tooltip_html( $data ) );  ?></label>
 			</th>
 			<?php foreach ( $data['keys'] as $input_key	=> $input_type ) :
 				$main_class = "input-" . $input_type;
@@ -708,22 +740,22 @@ class WC_Improved_Settings_API {
 				}
 				?>
 
-			<td class="forminp <?php echo sanitize_key( $field_key ); ?> <?php echo sanitize_key( $field_key ) .'_' . $input_key; ?>">
+			<td class="forminp <?php echo esc_attr( sanitize_key( $field_key ) ); ?> <?php echo esc_attr( sanitize_key( $field_key ) .'_' . $input_key ); ?>">
 				<fieldset>
 					<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
 					<input class="<?php echo esc_attr( $main_class );; ?> regular-input <?php echo esc_attr( $data['class'] ); ?>" type="<?php echo esc_attr( $input_type ); ?>" name="<?php echo esc_attr( $field_key ); ?>[<?php echo esc_attr( $data['index'] ); ?>][<?php echo esc_attr( $input_key );  ?>]" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" value="<?php
 					if ( isset( $data['values'][$input_key] ) ) {
 						echo esc_attr( $data['values'][$input_key] );
 					}
-					elseif ( $data['default'] ) {
-						echo esc_attr( $data['default'] );
-					} ?>" placeholder="<?php echo isset( $data['placeholders'][$input_key] ) ? esc_attr( $data['placeholders'][$input_key] ) : ''; ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo $this->get_custom_attribute_html( $data );  ?> />
-					<?php echo $this->get_description_html( $data );  ?>
+					elseif ( $data['wpdeepl'] ) {
+						echo esc_attr( $data['wpdeepl'] );
+					} ?>" placeholder="<?php echo isset( $data['placeholders'][$input_key] ) ? esc_attr( $data['placeholders'][$input_key] ) : ''; ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo wp_kses_post( $this->get_custom_attribute_html( $data ) );  ?> />
+					<?php echo wp_kses_post( $this->get_description_html( $data ) );  ?>
 				</fieldset>
 	
 			</td>
 		<?php endforeach; ?>
-			<td><a href="#" class="delete_row" onclick="jQuery(this).parent('td').parent('tr').remove(); return false;"><?php _e('Delete' ); ?></a></td>
+			<td><a href="#" class="delete_row" onclick="jQuery(this).parent('td').parent('tr').remove(); return false;"><?php esc_html_e( 'Delete', 'wpdeepl' ); ?></a></td>
 		</tr>
 		<?php
 
@@ -757,13 +789,13 @@ class WC_Improved_Settings_API {
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc">
-				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo $this->get_tooltip_html( $data );  ?></label>
+				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo wp_kses_post( $this->get_tooltip_html( $data ) );  ?></label>
 			</th>
 			<td class="forminp">
 				<fieldset>
 					<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
-					<input class="wc_input_price input-text regular-input <?php echo esc_attr( $data['class'] ); ?>" type="text" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" value="<?php echo esc_attr( wc_format_localized_price( $this->get_option( $key ) ) ); ?>" placeholder="<?php echo esc_attr( $data['placeholder'] ); ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo $this->get_custom_attribute_html( $data );  ?> />
-					<?php echo $this->get_description_html( $data );  ?>
+					<input class="wc_input_price input-text regular-input <?php echo esc_attr( $data['class'] ); ?>" type="text" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" value="<?php echo esc_attr( wc_format_localized_price( $this->get_option( $key ) ) ); ?>" placeholder="<?php echo esc_attr( $data['placeholder'] ); ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo wp_kses_post( $this->get_custom_attribute_html( $data ) );  ?> />
+					<?php echo wp_kses_post( $this->get_description_html( $data ) );  ?>
 				</fieldset>
 			</td>
 		</tr>
@@ -800,13 +832,13 @@ class WC_Improved_Settings_API {
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc">
-				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo $this->get_tooltip_html( $data );  ?></label>
+				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo wp_kses_post( $this->get_tooltip_html( $data ) );  ?></label>
 			</th>
 			<td class="forminp">
 				<fieldset>
 					<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
-					<input class="wc_input_decimal input-text regular-input <?php echo esc_attr( $data['class'] ); ?>" type="text" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" value="<?php echo esc_attr( wc_format_localized_decimal( $this->get_option( $key ) ) ); ?>" placeholder="<?php echo esc_attr( $data['placeholder'] ); ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo $this->get_custom_attribute_html( $data );  ?> />
-					<?php echo $this->get_description_html( $data );  ?>
+					<input class="wc_input_decimal input-text regular-input <?php echo esc_attr( $data['class'] ); ?>" type="text" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" value="<?php echo esc_attr( wc_format_localized_decimal( $this->get_option( $key ) ) ); ?>" placeholder="<?php echo esc_attr( $data['placeholder'] ); ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo wp_kses_post( $this->get_custom_attribute_html( $data ) );  ?> />
+					<?php echo wp_kses_post( $this->get_description_html( $data ) );  ?>
 				</fieldset>
 			</td>
 		</tr>
@@ -855,15 +887,19 @@ class WC_Improved_Settings_API {
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc">
-				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo $this->get_tooltip_html( $data );  ?></label>
+				
+				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php 
+				// get_tooltip_html returns safe HTML
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				 echo $this->get_tooltip_html( $data );  ?></label>
 			</th>
 			<td class="forminp">
 				<fieldset>
 					<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
 					<span class="colorpickpreview" style="background:<?php echo esc_attr( $this->get_option( $key ) ); ?>;">&nbsp;</span>
-					<input class="colorpick <?php echo esc_attr( $data['class'] ); ?>" type="text" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" value="<?php echo esc_attr( $this->get_option( $key ) ); ?>" placeholder="<?php echo esc_attr( $data['placeholder'] ); ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo $this->get_custom_attribute_html( $data );  ?> />
+					<input class="colorpick <?php echo esc_attr( $data['class'] ); ?>" type="text" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" value="<?php echo esc_attr( $this->get_option( $key ) ); ?>" placeholder="<?php echo esc_attr( $data['placeholder'] ); ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo wp_kses_post( $this->get_custom_attribute_html( $data ) );  ?> />
 					<div id="colorPickerDiv_<?php echo esc_attr( $field_key ); ?>" class="colorpickdiv" style="z-index: 100; background: #eee; border: 1px solid #ccc; position: absolute; display: none;"></div>
-					<?php echo $this->get_description_html( $data );  ?>
+					<?php echo wp_kses_post( $this->get_description_html( $data ) );  ?>
 				</fieldset>
 			</td>
 		</tr>
@@ -900,13 +936,15 @@ class WC_Improved_Settings_API {
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc">
-				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo $this->get_tooltip_html( $data );  ?></label>
+				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php 
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_tooltip_html retourne HTML déjà sécurisé
+				echo $this->get_tooltip_html( $data );  ?></label>
 			</th>
 			<td class="forminp">
 				<fieldset>
 					<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
-					<textarea rows="3" cols="20" class="input-text wide-input <?php echo esc_attr( $data['class'] ); ?>" type="<?php echo esc_attr( $data['type'] ); ?>" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" placeholder="<?php echo esc_attr( $data['placeholder'] ); ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo $this->get_custom_attribute_html( $data );  ?>><?php echo $this->get_option( $key ) ? esc_textarea( $this->get_option( $key ) ) : esc_attr( $data['placeholder']); ?></textarea>
-					<?php echo $this->get_description_html( $data );  ?>
+					<textarea rows="3" cols="20" class="input-text wide-input <?php echo esc_attr( $data['class'] ); ?>" type="<?php echo esc_attr( $data['type'] ); ?>" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" placeholder="<?php echo esc_attr( $data['placeholder'] ); ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo wp_kses_post( $this->get_custom_attribute_html( $data ) );  ?>><?php echo $this->get_option( $key ) ? esc_textarea( $this->get_option( $key ) ) : esc_attr( $data['placeholder']); ?></textarea>
+					<?php echo wp_kses_post( $this->get_description_html( $data ) );  ?>
 				</fieldset>
 			</td>
 		</tr>
@@ -947,14 +985,16 @@ class WC_Improved_Settings_API {
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc">
-				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo $this->get_tooltip_html( $data );  ?></label>
+				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php 
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_tooltip_html retourne HTML déjà sécurisé
+				echo $this->get_tooltip_html( $data );  ?></label>
 			</th>
 			<td class="forminp">
 				<fieldset>
 					<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
 					<label for="<?php echo esc_attr( $field_key ); ?>">
-					<input <?php disabled( $data['disabled'], true ); ?> class="<?php echo esc_attr( $data['class'] ); ?>" type="checkbox" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" value="1" <?php checked( $this->get_option( $key ), 'yes' ); ?> <?php echo $this->get_custom_attribute_html( $data );  ?> /> <?php echo wp_kses_post( $data['label'] ); ?></label><br/>
-					<?php echo $this->get_description_html( $data );  ?>
+					<input <?php disabled( $data['disabled'], true ); ?> class="<?php echo esc_attr( $data['class'] ); ?>" type="checkbox" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" value="1" <?php checked( $this->get_option( $key ), 'yes' ); ?> <?php echo wp_kses_post( $this->get_custom_attribute_html( $data ) );  ?> /> <?php echo wp_kses_post( $data['label'] ); ?></label><br/>
+					<?php echo wp_kses_post( $this->get_description_html( $data ) );  ?>
 				</fieldset>
 			</td>
 		</tr>
@@ -978,7 +1018,7 @@ class WC_Improved_Settings_API {
 		if ( $sub_field_key ) {
 			$selected_value = $selected_value[$sub_field_key];
 		}
-		//plouf($selected_value, " seleizehri pour key $key / field key $field_key");
+		//wpdeepl_debug_display($selected_value, " seleizehri pour key $key / field key $field_key");
 		$defaults = array(
 			'title' => '',
 			'disabled' => false,
@@ -994,24 +1034,29 @@ class WC_Improved_Settings_API {
 
 		$data = wp_parse_args( $data, $defaults );
 
-		//plouf($data, "pour key $key");
+		//wpdeepl_debug_display($data, "pour key $key");
 
 
 		ob_start();
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc">
-				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo $this->get_tooltip_html( $data );  ?></label>
+				
+			
+				<label for="<?php echo esc_attr( $field_key ); ?>"><?php 
+				// get_tooltip_html return safe HTML. Output needs no escaping.
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped 
+				echo wp_kses_post( $data['title'] ); ?> <?php echo $this->get_tooltip_html( $data );  ?></label>
 			</th>
 			<td class="forminp">
 				<fieldset>
 					<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
-					<select class="select <?php echo esc_attr( $data['class'] ); ?>" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo $this->get_custom_attribute_html( $data );  ?>>
+					<select class="select <?php echo esc_attr( $data['class'] ); ?>" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo wp_kses_post( $this->get_custom_attribute_html( $data ) );  ?>>
 						<?php foreach ( ( array ) $data['options'] as $option_key => $option_value ) : ?>
 							<option value="<?php echo esc_attr( $option_key ); ?>" <?php selected( ( string ) $option_key, esc_attr( $selected_value ) ); ?>><?php echo esc_attr( $option_value ); ?></option>
 						<?php endforeach; ?>
 					</select>
-					<?php echo $this->get_description_html( $data );  ?>
+					<?php echo wp_kses_post( $this->get_description_html( $data ) );  ?>
 				</fieldset>
 			</td>
 		</tr>
@@ -1047,18 +1092,23 @@ class WC_Improved_Settings_API {
 		$data = wp_parse_args( $data, $defaults );
 		$value = ( array ) $this->get_option( $key, array() );
 
-		//plouf($data['options'], 'options');
+		//wpdeepl_debug_display($data['options'], 'options');
 
 		ob_start();
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc">
-				<label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?> <?php echo $this->get_tooltip_html( $data );  ?></label>
+				
+			
+				<label for="<?php echo esc_attr( $field_key ); ?>"><?php 
+				// get_tooltip_html return safe HTML. Output needs no escaping.
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped 
+				echo wp_kses_post( $data['title'] ); ?> <?php echo $this->get_tooltip_html( $data );  ?></label>
 			</th>
 			<td class="forminp">
 				<fieldset>
 					<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
-					<select multiple="multiple" class="multiselect <?php echo esc_attr( $data['class'] ); ?>" name="<?php echo esc_attr( $field_key ); ?>[]" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo $this->get_custom_attribute_html( $data );  ?>>
+					<select multiple="multiple" class="multiselect <?php echo esc_attr( $data['class'] ); ?>" name="<?php echo esc_attr( $field_key ); ?>[]" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" <?php disabled( $data['disabled'], true ); ?> <?php echo wp_kses_post( $this->get_custom_attribute_html( $data ) );  ?>>
 						<?php foreach ( ( array ) $data['options'] as $option_key => $option_value ) : ?>
 							<?php if ( is_array( $option_value ) ) : ?>
 								<optgroup label="<?php echo esc_attr( $option_key ); ?>">
@@ -1071,9 +1121,9 @@ class WC_Improved_Settings_API {
 							<?php endif; ?>
 						<?php endforeach; ?>
 					</select>
-					<?php echo $this->get_description_html( $data );  ?>
+					<?php echo wp_kses_post( $this->get_description_html( $data ) );  ?>
 					<?php if ( $data['select_buttons'] ) : ?>
-						<br/><a class="select_all button" href="#"><?php esc_html_e( 'Select all', 'default' ); ?></a> <a class="select_none button" href="#"><?php esc_html_e( 'Select none', 'default' ); ?></a>
+						<br/><a class="select_all button" href="#"><?php esc_htmlesc_html_e( 'Select all', 'wpdeepl' ); ?></a> <a class="select_none button" href="#"><?php esc_htmlesc_html_e( 'Select none', 'wpdeepl' ); ?></a>
 					<?php endif; ?>
 				</fieldset>
 			</td>
@@ -1096,11 +1146,12 @@ class WC_Improved_Settings_API {
 		$data = wp_parse_args( $data, $defaults );
 
 		ob_start();
-		$bytes = apply_filters( 'import_upload_size_limit', wp_max_upload_size() );
+		$bytes = apply_filters( 'wpdeepl_import_upload_size_limit', wp_max_upload_size() );
 		$size = size_format( $bytes );
 		$upload_dir = wp_upload_dir();
 		if ( ! empty( $upload_dir['error'] ) ) :
-			?><div class="error"><p><?php _e('Before you can upload your import file, you will need to fix the following error:'); ?></p>
+			?><div class="error"><p><?php 
+			esc_html_e('Before you can upload your import file, you will need to fix the following error:', 'wpdeepl' ); ?></p>
 			<p><strong><?php echo esc_html( $upload_dir['error'] ); ?></strong></p></div><?php
 		else :
 			?>
@@ -1109,14 +1160,16 @@ class WC_Improved_Settings_API {
 			<input type="hidden" name="page" value="<?php echo esc_attr( $data['page'] ); ?>" />
 			<h3><?php echo esc_html( $data['title'] ); ?></h3>
 			<p>
-			<label for="filename"><?php _e( 'Choose a file from your computer:' ); ?></label> (<?php printf( __('Maximum size: %s' ), $size ); ?>)
+			<label for="filename"><?php esc_html_e( 'Choose a file from your computer:', 'wpdeepl' ); ?></label> (<?php 
+				/* translators: size of the maximum upload */
+				printf( esc_html__( 'Maximum size: %s', 'wpdeepl' ), esc_html( $size ) ); ?>)
 			<input type="file" id="filename" name="filename" size="25" />
 			</p>
 
 			<input type="hidden" name="action" value="<?php echo esc_attr( $data['action'] ) ; ?>" />
 			<input type="hidden" name="max_file_size" value="<?php echo esc_attr( $bytes ); ?>" />
 			</p>
-			<?php submit_button( __('Upload file and import'), 'primary' ); ?>
+			<?php submit_button( __( 'Upload file and import', 'wpdeepl' ), 'primary' ); ?>
 			</form>
 			<?php
 				endif;

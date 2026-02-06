@@ -1,88 +1,84 @@
 <?php
-
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 function wpdeepl_test_admin() {
-
-
 	return;
-	/*
-	$glossary_id = 'da005df2-fb26-4165-8310-b07c9cc1b492';
-	$list = deepl_listGlossaryEntries( $glossary_id, 'tsv' );
-	plouf( $list );
-	die('okazeaze6a8z4e6e4az4');
-*/
-	//deepl_deleteGlosssary(  );
-
-
 }
 
 
 
 
 
-function deepl_language_selector(
+function wpdeepl_language_selector(
 	$type = 'target',
 	$css_id = 'deepl_language_selector',
 	$selected = false, 
 	$not_selected = false,
 	$forbid_auto = false
-	) {
+) {
 	$languages = DeepLConfiguration::DefaultsAllLanguages();
 
 	$wp_locale = get_locale();
 
 	$default_target_language = DeepLConfiguration::getDefaultTargetLanguage();
 
-	if ( $type == 'target' && $selected == false ) {
+	if ( 'target' === $type && false === $selected ) {
 		$selected = $default_target_language;
-		//plouf( $languages );
 	}
 
 	$html = "";
 
-	$html .= "\n" . '<select id="' . $css_id . '" name="' . $css_id . '" class="deepl_translate_form">';
+	// 1. Sécurisation des attributs ID et NAME
+	$html .= "\n" . '<select id="' . esc_attr( $css_id ) . '" name="' . esc_attr( $css_id ) . '" class="deepl_translate_form">';
 
-	if ( $type == 'source' ) {
-		if( !$forbid_auto ) {
-			if( !defined('WPDEEPLPRO_NAME') || !DeepLConfiguration::usingGlossaries() ) {
-			$html .= '
-				<option value="auto">' . __( 'Automatic', 'wpdeepl' ) . '</option>';
+	if ( 'source' === $type ) {
+		if( ! $forbid_auto ) {
+			// 2. Sécurisation des textes traduits
+			if( ! defined('WPDEEPLPRO_NAME') || ! DeepLConfiguration::usingGlossaries() ) {
+				$html .= '
+				<option value="auto">' . esc_html__( 'Automatic', 'wpdeepl' ) . '</option>';
 			}
-				
 			else {
 				$html .= '
-				<option value="auto">' . __( 'Automatic (no glossary)', 'wpdeepl' ) . '</option>';
-
+				<option value="auto">' . esc_html__( 'Automatic (no glossary)', 'wpdeepl' ) . '</option>';
 			}
 		}
 	}
-
 
 	$languages_to_display = DeepLConfiguration::getDisplayedLanguages();
 
 	foreach ( $languages as $ln_id => $language ) {
 
-		if ( $languages_to_display && !in_array( $ln_id, $languages_to_display ) ) {
+		if ( $languages_to_display && ! in_array( $ln_id, $languages_to_display, true ) ) {
 			continue;
 		}
+		
 		if (
 			$default_target_language
 			&& $ln_id == $default_target_language
-			&& $type == 'source'
+			&& 'source' === $type
 		) {
 			//continue;
 		}
 
+		// 3. Sécurisation de la valeur de l'option
 		$html .= '
-		<option value="' . $ln_id .'"';
+		<option value="' . esc_attr( $ln_id ) .'"';
 
 		if ( $ln_id == $selected && $ln_id != $not_selected ) {
 			$html .= ' selected="selected"';
 		}
+		
 		$label = ( $wp_locale && isset( $language['labels'][$wp_locale] )) ? $language['labels'][$wp_locale] : $language['labels']['fr_FR'];
-		$html .= '>' . $label. '</option>';
+		
+		// 4. Sécurisation impérative du label affiché (FAIL fréquent du PCP ici)
+		$html .= '>' . esc_html( $label ) . '</option>';
 	}
-	if ( $type == 'target' ) $html .= '
-	<option value="notranslation">' . __( 'Dont\'t translate', 'wpdeepl' ) . '</option>';
+	
+	if ( 'target' === $type ) {
+		// Correction typo + escaping
+		$html .= '
+		<option value="notranslation">' . esc_html__( "Don't translate", 'wpdeepl' ) . '</option>';
+	}
 
 	$html .="\n</select>";
 
@@ -90,10 +86,11 @@ function deepl_language_selector(
 }
 
 function wpdeepl_show_clear_logs_button() {
-	echo '
+	?>
 	<p class="submit">
-		<button name="clear_logs" class="button-primary" type="submit" value="clear_logs">' . __('Clear logs', 'wpdeepl') .'</button>
-	</p>';
+		<button name="clear_logs" class="button-primary" type="submit" value="clear_logs"><?php esc_html_e('Clear logs', 'wpdeepl'); ?></button>
+	</p>
+	<?php 
 }
 
 
@@ -101,15 +98,17 @@ function wpdeepl_show_clear_logs_button() {
 function wpdeepl_clear_logs() {
 	$log_files = glob( trailingslashit( WPDEEPL_FILES ) .'*.log');
 	if ($log_files) foreach ( $log_files as $log_file) {
-		unlink($log_file);
+		wp_delete_file($log_file);
 	}
-	echo '<div class="notice notice-success"><p>' . __('Log files deleted', 'wpdeepl') . '</p></div>';
+	?>
+	<div class="notice notice-success"><p><?php esc_html_e('Log files deleted', 'wpdeepl'); ?></p></div>
+	<?php 
 }
 function wpdeepl_log( $bits, $type ) {
-	$log_lines = array_merge(array('date'	=> date('d/m/Y H:i:s')), $bits);
+	$log_lines = array_merge(array('date'	=> gmdate('d/m/Y H:i:s')), $bits);
 	$log_line = serialize($log_lines) . "\n";
 	$type = html_entity_decode( $type );
-	$log_file = trailingslashit( WPDEEPL_FILES ) . date( 'Y-m' ) . '-' . $type . '.log';
+	$log_file = trailingslashit( WPDEEPL_FILES ) . gmdate( 'Y-m' ) . '-' . $type . '.log';
 	file_put_contents( $log_file, $log_line, FILE_APPEND );
 }
 
@@ -119,7 +118,8 @@ function wpdeepl_prune_logs() {
 		return false;
 	}
 
-	if( !wp_verify_nonce( $_GET[ 'nonce' ], 'prune_logs' ) ) {
+	$nonce_value = filter_input( INPUT_GET, 'nonce', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+	if ( ! $nonce_value || ! wp_verify_nonce( $nonce_value, 'prune_logs' ) ) {
 		return false;
 	}
 	
@@ -137,7 +137,7 @@ function wpdeepl_prune_logs() {
 
  		if ( $log_time < $first_day_time ) {
  			//echo " <br />SUPPRESSION $log_file : " . date('Y-m-d H:i:s', $log_time) . " < " . date('Y-m-d H:i:s', $first_day_time );
- 			unlink( $log_file );
+ 			wp_delete_file( $log_file );
  		}
 		}
 	}
@@ -147,7 +147,9 @@ function wpdeepl_prune_logs() {
 function wpdeepl_display_logs() {
 
 
-	echo '<h3 class="wc-settings-sub-title" id="logs">' . __('Logs','wpdeepl') . '</h3>';
+	?>
+	<h3 class="wc-settings-sub-title" id="logs"><?php esc_html_e('Logs','wpdeepl'); ?></h3>
+	<?php 
 
 	$log_files = glob( trailingslashit( WPDEEPL_FILES ) .'*.log');
 	if ($log_files) {
@@ -156,17 +158,22 @@ function wpdeepl_display_logs() {
 			$contents = file_get_contents( $log_file );
 			if (preg_match('#(\d+)-(\d+)-(\w+)\.log#', $file_name, $match)) {
 				$date = $match[2] . '/' . $match[1];
-				echo '<h3>';
-				printf(
-					__("File '%s' for %s", 'wpdeepl' ),
-					$match[3],
-					$date
+				?>
+				<h3><?php
+				echo esc_html(
+					sprintf(
+						/* translators: 1. file name 2. month */
+						__("File '%1\$s' for %2\$s", 'wpdeepl' ),
+						$match[3],
+						$date
+					)
 				);
-				echo '</h3>';
+				?>
+				</h3><?php
 
 				$lines = explode("\n", $contents);
 				foreach ($lines as $line) {
-					plouf(unserialize($line));
+					wpdeepl_debug_display(unserialize($line));
 				}
 
 			}
@@ -174,7 +181,7 @@ function wpdeepl_display_logs() {
 		}
 	}
 	else {
-		_e( 'No log files', 'wpdeepl' );
+		esc_html_e( 'No log files', 'wpdeepl' );
 	}
 }
 

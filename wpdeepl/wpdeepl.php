@@ -1,50 +1,46 @@
 <?php
 /**
- * Plugin Name: DeepL for WordPress : translation plugin
- * Description: Get DeepL translation magic right inside your WordPress editor (with a paid DeepL Pro account)
- * Version: 2.4.5
+ * Plugin Name: Translation with DeepL API
+ * Description: Get DeepL translation magic right inside your WordPress editor (with a paid DeepL Pro account). This plugin is not affiliated with DeepL SE.
+ * Version: 2.5.4
  * Plugin Slug: wpdeepl
  * Author: Fluenx
  * Author URI: https://www.fluenx.com/
- * Requires at least: 4.0.0
- * Tested up to: 6.7.1
- * Stable tag: 2.4.5
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: wpdeepl
  * Domain Path: /languages
  */
 
 //return;
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-$allow_front_end = get_option('wpdeepl_allow_front_end');
-
-if( $allow_front_end != 'yes' ) {
+// exit early
+$wpdeepl_allow_front_end = get_option('wpdeepl_allow_front_end');
+if( $wpdeepl_allow_front_end != 'yes' ) {
 	if ( !function_exists( 'is_admin' ) || !is_admin() )
 	return;
-
 }
 
-
-defined( 'WPDEEPL_FLAVOR' ) 	or define( 'WPDEEPL_FLAVOR', 'free' );
+//defined( 'WPDEEPL_DEBUG' ) 		or define( 'WPDEEPL_DEBUG', false ); // Uncomment AND set to true to force debug mode
+defined( 'WPDEEPL_FLAVOR' ) 	or define( 'WPDEEPL_FLAVOR', 	'free' );
 defined( 'WPDEEPL_NAME' ) 		or define( 'WPDEEPL_NAME', 		plugin_basename( __FILE__ ) );
 defined( 'WPDEEPL_SLUG' ) 		or define( 'WPDEEPL_SLUG', 		'wpdeepl' );
 defined( 'WPDEEPL_DIR' ) 		or define( 'WPDEEPL_DIR', 		dirname( __FILE__ ) );
 defined( 'WPDEEPL_PATH' ) 		or define( 'WPDEEPL_PATH', 		realpath( __DIR__ ) );
 defined( 'WPDEEPL_URL' ) 		or define( 'WPDEEPL_URL', 		plugins_url( '', __FILE__ ) );
 	
-$plugin_data = get_file_data( __FILE__, array( 'Version' => 'Version' ), false );
-defined( 'WPDEEPL_VERSION' ) 	or define( 'WPDEEPL_VERSION', $plugin_data['Version'] );
+$wpdeepl_plugin_data = get_file_data( __FILE__, array( 'Version' => 'Version' ), false );
+defined( 'WPDEEPL_VERSION' ) 	or define( 'WPDEEPL_VERSION', $wpdeepl_plugin_data['Version'] );
 
 defined( 'WPDEEPL_DEBUG' ) 		or define( 'WPDEEPL_DEBUG', false );
 
-$wp_upload_dir = wp_upload_dir();
-defined( 'WPDEEPL_FILES' ) 		or define( 'WPDEEPL_FILES', 		trailingslashit( $wp_upload_dir['basedir'] ) . 'wpdeepl' );
-defined( 'WPDEEPL_FILES_URL' ) 	or define( 'WPDEEPL_FILES_URL', 	trailingslashit( $wp_upload_dir['baseurl'] ) . 'wpdeepl' );
-if ( !is_dir( WPDEEPL_FILES ) ) mkdir( WPDEEPL_FILES );
+$wpdeepl_upload_dir = wp_upload_dir();
+defined( 'WPDEEPL_FILES' ) 		or define( 'WPDEEPL_FILES', 		trailingslashit( $wpdeepl_upload_dir['basedir'] ) . 'wpdeepl' );
+defined( 'WPDEEPL_FILES_URL' ) 	or define( 'WPDEEPL_FILES_URL', 	trailingslashit( $wpdeepl_upload_dir['baseurl'] ) . 'wpdeepl' );
 
-// obs 20210422 v1.7 defined( 'DEEPL_API_URL' ) or define( 'DEEPL_API_URL',	'https://api.deepl.com/v2/' );
-
-function zebench_wpdeepl_paths( $paths = array() ) {
+function wpdeepl_paths( $paths = array() ) {
 	$paths['deepl_settings'] = array(
 		'files'	=> WPDEEPL_FILES
 	);
@@ -52,7 +48,7 @@ function zebench_wpdeepl_paths( $paths = array() ) {
 }
 
 try {
-	if ( is_admin() || $allow_front_end == 'yes' ) {
+	if ( is_admin() || $wpdeepl_allow_front_end == 'yes' ) {
 
 		
 		include_once  trailingslashit( WPDEEPL_PATH ) . 'deepl-configuration.class.php';
@@ -81,11 +77,12 @@ try {
 
  		}
  		
-		add_filter('zebench_plugins_paths', 'zebench_wpdeepl_paths');
+		add_filter('zebench_plugins_paths', 'wpdeepl_paths');
 
-		$customisation_file = trailingslashit( WPDEEPL_PATH ) . 'custom-integration.php';
-		if ( file_exists( $customisation_file ) ) {
-			include_once  $customisation_file;
+		$wpdeepl_customisation_file = trailingslashit( WPDEEPL_PATH ) . 'custom-integration.php';
+		//echo "\n file $wpdeepl_customisation_file / exists ? " . file_exists( $wpdeepl_customisation_file );
+		if ( file_exists( $wpdeepl_customisation_file ) ) {
+			include_once  $wpdeepl_customisation_file;
 		}
 		else {
 			
@@ -94,9 +91,17 @@ try {
 	}
 } catch ( Exception $exception ) {
 	if ( current_user_can( 'manage_options' ) ) {
-		print_r( $exception );
-		die( __( 'Error loading WPDeepL','wpdeepl' ) );
+		// En mode debug seulement, logger les erreurs
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug mode only
+			error_log( 'WPDeepL Fatal Error: ' . $exception->getMessage() . ' in ' . $exception->getFile() . ' on line ' . $exception->getLine() );
+		}
+		wp_die( 
+            esc_html__( 'Error loading WPDeepL', 'wpdeepl' ), 
+            array( 'response' => 500 ) 
+        );
 	}
+    return;
 }
 
 
@@ -110,12 +115,19 @@ function deepl_is_plugin_fully_configured() {
 	return true;
 }
 
-if ( !function_exists( 'plouf' ) ) {
-	function plouf( $e, $txt = '' ) {
-		if ( $txt != '' ) echo "<br />\n$txt";
-		echo '<pre>';
-		print_r( $e );
-		echo '</pre>';
+if ( !function_exists( 'wpdeepl_debug_display' ) ) {
+	function wpdeepl_debug_display( $e, $txt = '' ) {
+		
+		// En mode debug seulement
+		if ( 1 == 1  ) {
+			if ( $txt != '' ) echo esc_html(  "<br />\n$txt" );
+			?>
+			<pre><?php  
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r -- Debug mode seulement
+				print_r( $e ); 
+			?>
+			</pre><?php 
+		}
 	}
 }
 
@@ -144,6 +156,4 @@ function deepl_init() {
 	if ( !is_admin() ) {
 		return;
 	}
-
-	load_plugin_textdomain( 'wpdeepl', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 }

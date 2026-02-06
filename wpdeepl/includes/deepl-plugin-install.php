@@ -1,5 +1,5 @@
 <?php
-
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 function deepl_install_plugin() {
 	if ( !get_option( 'deepl_plugin_installed') ) {
@@ -20,6 +20,10 @@ function deepl_install_plugin() {
 			update_option( $key, 1 );
 		}
 	}
+
+	global $wp_filesystem; if ( empty( $wp_filesystem ) ) { require_once( ABSPATH . 'wp-admin/includes/file.php' ); WP_Filesystem(); }
+	$wpdeepl_dir_path = wp_normalize_path( WPDEEPL_FILES );
+	if ( ! $wp_filesystem->is_dir( $wpdeepl_dir_path ) ) { $wp_filesystem->mkdir( $wpdeepl_dir_path, 0755 ); }
 
 	update_option('wpdeepl_plugin_installed', 1 );
 }

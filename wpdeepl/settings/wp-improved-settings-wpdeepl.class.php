@@ -1,10 +1,21 @@
 <?php
+/**
+ * wpdeepl Settings Implementation
+ *
+ * @package wpdeepl_WP_Improved_Settings
+ * @version 20251205
+ *
+ * 20251205 Version 2.0 - Adaptée au framework v2.0, PCP compliant
+ */
 
-if ( !class_exists( 'WP_Improved_Settings\WP_Improved_Settings' ) ) {
+namespace wpdeepl_WP_Improved_Settings;
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
+if ( !class_exists( 'wpdeepl_WP_Improved_Settings' ) ) {
 	require( dirname( __FILE__ ) . '/wp-improved-settings.class.php' );
 }
 
-class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settings {
+class wpdeepl_WP_Improved_Settings_DeepL extends wpdeepl_WP_Improved_Settings {
 
 	public $plugin_id = 'wpdeepl';
 	public $option_page = 'deepl_settings';
@@ -33,11 +44,11 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 
 
 	static function getPageTitle() {
-		return __( 'DeepL settings', 'wpdeepl' );
+		return __( 'Translation settings', 'wpdeepl' );
 	}
 
 	static function getMenuTitle() {
-		return __( 'DeepL translation', 'wpdeepl' );
+		return __( 'Translation with DeepL', 'wpdeepl' );
 	}
 
 	function before_save() {
@@ -51,7 +62,7 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 
 
 
-	function maybe_print_notices() {
+	public function maybe_print_notices() {
 		$fully_configured = deepl_is_plugin_fully_configured();
 		if ( $fully_configured !== true ) {
 			$class = 'notice notice-error';
@@ -62,31 +73,39 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 				foreach ( $fully_configured->get_error_codes() as $error_code ) {
 					foreach ( $fully_configured->get_error_messages( $error_code ) as $error_message ) {
 						$messages[] = sprintf(
-							__( '<li><a href="%s">%s</a></li>', 'wpdeepl' ),
-							admin_url( '/' . $this->parent_menu . '?page=' . $this->option_page . '&tab=' . $error_code ),
-							$error_message
+							'<li><a href="%s">%s</a></li>',
+							esc_url( admin_url( '/' . $this->parent_menu . '?page=' . $this->option_page . '&tab=' . sanitize_key( $error_code ) ) ),
+							esc_html( $error_message )
 						);
 					}
 				}
 			}
-			$message = sprintf(
-				__( 'The DeepL plugin is not fully configured yet: <ul>%s</ul>', 'wpdeepl' ),
-				implode( "\n", $messages )
+			$message = wp_kses_post(
+				sprintf(
+					/* translators: notice messages */
+					__( 'The DeepL plugin is not fully configured yet: <ul>%s</ul>', 'wpdeepl' ),
+					// Messages already escaped above
+					implode( "\n", $messages )
+				)
 			);
 			if ( count( $messages ) ) {
-				$message .= sprintf(
-					__( '<a href="%s">Please provide required informations</a>', 'wpdeepl' ),
-					admin_url( '/' . $this->parent_menu . '?page=' . $this->option_page )
+				$message .= wp_kses_post(
+					sprintf(
+						/* translators: link to the settings page */
+						__( '<a href="%s">Please provide required informations</a>', 'wpdeepl' ),
+						esc_url( admin_url( '/' . $this->parent_menu . '?page=' . $this->option_page ) )
+					)
 				);
 			}
 
-			printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), ( $message ) );
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $message already escaped with wp_kses_post() above
+			printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), $message );
 		}
 	}
 
-	function getSettingsStructure() {
-
-		if( !isset( $_REQUEST['page'] ) || $_REQUEST['page'] !== 'deepl_settings' ) 
+	public function getSettingsStructure() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- sanitized check for page param
+		if( !isset( $_REQUEST['page'] ) || sanitize_key( wp_unslash( $_REQUEST['page'] ) ) !== 'deepl_settings' ) 
 			return array();
 
 		$settings = array(
@@ -116,13 +135,13 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 		/** IDS **/
 
 		$servers = array();
-		$possibilities = DeepLConfiguration::getDeeplAPIServers();
+		$possibilities = \DeepLConfiguration::getDeeplAPIServers();
 		foreach ( $possibilities as $key => $data ) {
 			$servers[$key] = $data['description'];
 		}
 
 		$settings['ids']['sections']['identifiants'] = array(
-			'title'			=> __( 'DeepL credentials', 'wpdeepl' ),
+			'title'			=> __( 'Credentials (DeepL)', 'wpdeepl' ),
 			'fields'	=> array(
 
 				array(
@@ -131,7 +150,8 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 					'type'			=> 'text',
 					'css'			=> 'width: 20em;',
 					'description'	=> sprintf(
-						__( '<a target="_blank" href="%s">Create a DeepL Pro account here</a>. Get your <a target="_blank" href="%s">API key there</a>', 'wpdeepl' ),
+						/* translators: 1. link to DeepL account creation, 2. link to DeepL API key page */
+						__( '<a target="_blank" href="%1$s">Create a DeepL Pro account here</a>. Get your <a target="_blank" href="%2$s">API key there</a>', 'wpdeepl' ),
 						'https://www.deepl.com/pro/',
 						'https://www.deepl.com/account/summary'
 					),
@@ -143,6 +163,7 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 					'css'			=> 'width: 30em;',
 					'options'		=> $servers,
 					'description'	=> sprintf(
+						/* translators: Deepl website display name */
 						__( 'Pick a plan on <a href="https://www.deepl.com/pro-account/plan">%s</a>', 'wpdeepl'),
 						'https://www.deepl.com/'
 					),
@@ -153,7 +174,7 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 		);
 
 
-		if ( DeepLConfiguration::getAPIKey() ) {
+		if ( \DeepLConfiguration::getAPIKey() ) {
 			$settings['ids']['footer']['actions'] = array( 'deepl_show_usage' );
 		/** END IDS **/
 
@@ -172,15 +193,15 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 						'id'			=> 'default_language',
 						'title'			=> __( 'Default target language', 'wpdeepl' ),
 						'type'			=> 'select',
-						'options'		=> DeepLConfiguration::DefaultsISOCodes(),
-						'default'		=> substr( get_locale(), 0, 2 ),
+						'options'		=> \DeepLConfiguration::DefaultsISOCodes(),
+						'wpdeepl'		=> substr( get_locale(), 0, 2 ),
 						'css'			=> 'width: 15rem; ',
 					),
 					array(
 						'id'			=> 'allow_front_end',
 						'title'			=> __( 'Allow front end usage', 'wpdeepl' ),
 						'type'			=> 'checkbox',
-						'default'		=> 'no',
+						'wpdeepl'		=> 'no',
 						'description'	=> __('By default, this plugin is only loaded on the admin side and never interacts with the front end. If you need to use the plugin on the front side of your website, please check this box', 'wpdeepl' ),
 					),
 
@@ -189,33 +210,33 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 						'id'			=> 'displayed_languages',
 						'title'			=> __( 'Displayed languages', 'wpdeepl' ),
 						'type'			=> 'multiselect',
-						'options'		=> DeepLConfiguration::DefaultsISOCodes(),
-						'default'		=> substr( get_locale(), 0, 2 ),
+						'options'		=> \DeepLConfiguration::DefaultsISOCodes(),
+						'wpdeepl'		=> substr( get_locale(), 0, 2 ),
 						'css'			=> 'width: 15rem; height: 20rem;',
 					),
 				)
 			);
 
-			$settings['translation']['sections']['default'] = array(
+			$settings['translation']['sections']['wpdeepl'] = array(
 				'title'		=> __( 'Translation by default', 'wpdeepl' ),
 				'fields'	=> array(
 					array(
 						'id'			=> 'tpost_title',
 						'title'			=> __( 'Post title', 'wpdeepl' ),
 						'type'			=> 'checkbox',
-						'default'		=> 'on',
+						'wpdeepl'		=> 'on',
 					),
 					array(
 						'id'			=> 'tpost_excerpt',
 						'title'			=> __( 'Post excerpt', 'wpdeepl' ),
 						'type'			=> 'checkbox',
-						'default'		=> 'on',
+						'wpdeepl'		=> 'on',
 					),
 					array(
 						'id'			=> 'tpost_content',
 						'title'			=> __( 'Post content', 'wpdeepl' ),
 						'type'			=> 'checkbox',
-						'default'		=> 'on',
+						'wpdeepl'		=> 'on',
 					),
 
 				)
@@ -226,24 +247,27 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 				'fields' => array(
 					array(
 						'id'			=> 'default_formality',
-						'title'			=> __( 'Default', 'default' ),
+						'title'			=> __( 'Default', 'wpdeepl' ),
 						'type'			=> 'select',
 						'options'		=> $formality_levels,
 						'default'		=> 'default',
 					),
 				)
 			);
-			$displayed_languages = DeepLConfiguration::getDisplayedLanguages();
+			$displayed_languages = \DeepLConfiguration::getDisplayedLanguages();
 
-			$allowed_formality_languages = DeepLConfiguration::getLanguagesAllowingFormality();
+			$allowed_formality_languages = \DeepLConfiguration::getLanguagesAllowingFormality();
 
 			
 			if( $displayed_languages ) foreach( $displayed_languages as $language ) {
+				// Sanitiser le language code pour les IDs
+				$sanitized_language = sanitize_key( $language );
 				if( in_array( $language, $allowed_formality_languages ) ) {
-					$language_name = DeepLConfiguration::validateLang( $language, 'label' );
+					$language_name = \DeepLConfiguration::validateLang( $language, 'label' );
 					$settings['translation']['sections']['formality']['fields'][] = array(
-						'id'			=> 'formality_'. $language,
-						'title'			=> sprintf( __( 'Formality level : %s', 'wpdeepl' ), $language_name ),
+						'id'			=> 'formality_'. $sanitized_language,
+						/* translators: formality level */
+						'title'			=> sprintf( __( 'Formality level : %s', 'wpdeepl' ), esc_html( $language_name ) ),
 						'type'			=> 'select',
 						'options'		=> $formality_levels,
 						'default'		=> 'default',
@@ -251,10 +275,11 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 
 				}
 				else {
-					$language_name = DeepLConfiguration::validateLang( $language, 'label' );
+					$language_name = \DeepLConfiguration::validateLang( $language, 'label' );
 					$settings['translation']['sections']['formality']['fields'][] = array(
-						'id'			=> 'formality_'. $language,
-						'title'			=> sprintf( __( 'Formality level : %s', 'wpdeepl' ), $language_name ),
+						'id'			=> 'formality_'. $sanitized_language,
+						/* translators: formality level */
+						'title'			=> sprintf( __( 'Formality level : %s', 'wpdeepl' ), esc_html( $language_name ) ),
 						'type'			=> 'select',
 						'options'		=> array('default'),
 						'default'		=> 'default',
@@ -280,9 +305,9 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 		
 		$post_types = apply_filters( 'deepl_metabox_post_types', $post_types );
 
-		$default_metabox_behaviours = DeepLConfiguration::DefaultsMetaboxBehaviours();
+		$default_metabox_behaviours = \DeepLConfiguration::DefaultsMetaboxBehaviours();
 
-		//plouf($post_types); 		plouf( DeeplConfiguration::getMetaBoxPostTypes() , "saved");
+		//wpdeepl_debug_display($post_types); 		wpdeepl_debug_display( \DeepLConfiguration::getMetaBoxPostTypes() , "saved");
 
 		$settings['integration']['sections']['metabox'] = array(
 			'title'			=> __( 'Metabox', 'wpdeepl' ),
@@ -293,7 +318,7 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 					'type'			=> 'multiselect',
 					'options'		=> $post_types,
 					'css'			=> 'height: '. count( $post_types ) *1.5 .'rem;',
-					'default'		=> array( 'post', 'page' ),
+					'wpdeepl'		=> array( 'post', 'page' ),
 					'description'	=> __( 'Select which post types you want the metabox to appear on. To duplicate posts in different languages (as a starting point for translation), it might be useful to use the "Duplicate post" feature of Polylang Pro, or a "Duplicate post" plugin.', 'wpdeepl' ),
  				), 
 /*
@@ -302,7 +327,7 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 					'title'			=> __( 'Default behaviour', 'wpdeepl' ),
 					'type'			=> 'radio',
 					'values'		=> $default_metabox_behaviours,
-					'default'		=> 'replace',
+					'wpdeepl'		=> 'replace',
 					'description'	=> __( 'For content to be appended, you need to use a supported multilingual plugin', 'wpdeepl' ),
  				),
  				*/
@@ -315,7 +340,7 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 						 'side' 		=> 'side',
 						 'advanced'		=> 'advanced'
 					),
-					'default'		=> 'side',
+					'wpdeepl'		=> 'side',
 					'description'	=> __("'Side' = metabox on the side column, 'Normal' = on the main column",'wpdeepl' ),
  				),
  				array(
@@ -326,7 +351,7 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 						'high'			=> 'high',
 						'low'			=> 'low'
 					),
-					'default'		=> 'high',
+					'wpdeepl'		=> 'high',
 					'description'	=> __('Position of the metabox in the column', 'wpdeepl' ),
  				),
 			)
@@ -344,7 +369,7 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 						'1'	=> __('Minimal','wpdeepl' ),
 						'2'	=> __('Full','wpdeepl' ),
 					),
-					'default'		=> 0,
+					'wpdeepl'		=> 0,
  				),
 			)
 		);
@@ -353,13 +378,11 @@ class WP_Improved_Settings_DeepL extends WP_Improved_Settings\WP_Improved_Settin
 		$admin_url = wp_nonce_url( $admin_url, 'prune_logs', 'nonce' );
 	    
 
-		$message =
-		
-			'<a href="'
-			. $admin_url
-			.'" class="button button-primary">'
-			. __( 'Delete logs from previous months', 'wpdeepl' )
-			. '</a>';
+		$message = sprintf(
+			'<a href="%s" class="button button-primary">%s</a>',
+			esc_url( $admin_url ),
+			esc_html__( 'Delete logs from previous months', 'wpdeepl' )
+		);
 
 		$settings['maintenance']['footer']['html'] = array( $message );
 

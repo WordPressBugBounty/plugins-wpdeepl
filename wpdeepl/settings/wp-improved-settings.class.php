@@ -2,9 +2,10 @@
 /**
  * Improved Settings
  *
- * @package WP_Improved_Settings
- * @version 20221115
+ * @package wpdeepl_WP_Improved_Settings
+ * @version 20251205
  *
+ * 20251205 Version 2.0 - Adaptée à l'API v2.0, PCP compliant
  * 20221115 esc all
  * 20210111 ajout wpimpsettings_find_option_like
  * 20200320 ajout des setting en tableau
@@ -13,58 +14,93 @@
  * 20191201 plugin paths
  */
 
-namespace WP_Improved_Settings;
+namespace wpdeepl_WP_Improved_Settings;
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-if ( !function_exists( 'WP_Improved_Settings\zebench_get_plugin_paths' ) ) {
+if ( !function_exists( 'wpdeepl_WP_Improved_Settings\zebench_get_plugin_paths' ) ) {
 	function zebench_get_plugin_paths() {
-		$array = apply_filters( 'zebench_get_plugin_paths', array() );
+		$array = apply_filters( 'wpdeepl_zebench_get_plugin_paths', array() );
 		return $array;
 	}
 }
 
-if( !function_exists('WP_Improved_Settings\wpimpsettings_find_all_options_like') ){
+if( !function_exists('wpdeepl_WP_Improved_Settings\wpimpsettings_find_all_options_like') ){
 	function wpimpsettings_find_all_options_like( $string ) {
-		// ugly hack to fetch plugin_name_index options
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return array();
+		}
 		global $wpdb;
-		$search = $wpdb->_real_escape( $string );
-		$sql = "SELECT option_name, option_value FROM $wpdb->options WHERE option_name LIKE '%$search%'";
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Prepared statement, admin-only utility function
+		$results = $wpdb->get_results( 
+			$wpdb->prepare( 
+				"SELECT option_name, option_value FROM $wpdb->options WHERE option_name LIKE %s",
+				'%' . $wpdb->esc_like( $string ) . '%' // Assainissement (esc_like) et wildcards injectés ici
+			) 
+		, ARRAY_A );
 		
-		$results = $wpdb->get_results( $sql, ARRAY_A );
 		return $results;
 	}
 }
-
-if( !function_exists('WP_Improved_Settings\wpimpsettings_find_option_like') ){
+if( !function_exists('wpdeepl_WP_Improved_Settings\wpimpsettings_find_option_like') ){
 	function wpimpsettings_find_option_like( $string ) {
-		// ugly hack to fetch plugin_name_index options
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return array();
+		}
 		global $wpdb;
-		$search = $wpdb->_real_escape( $string );
-		$sql = "SELECT option_name, option_value FROM $wpdb->options WHERE option_name LIKE '$search%'";
-		
-		$results = $wpdb->get_results( $sql, ARRAY_A );
-		$return = array();
-		if( $results ) foreach ( $results as $result ) {
-			$name = str_replace($string .'_', '', $result['option_name'] );
-			$explode = explode('_', $name );
+        $sanitized_string = sanitize_key( $string );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Prepared statement, admin-only utility function
+		$results = $wpdb->get_results( 
+			$wpdb->prepare( 
+				"SELECT option_name, option_value FROM $wpdb->options WHERE option_name LIKE %s",
+				$wpdb->esc_like( $sanitized_string ) . '%' // [sanitized_string]%
+			) 
+		, ARRAY_A );
 
-			$value = $result['option_value'];
-			$return[$explode[0]][$explode[1]] = $value;
+		$return = array();
+		if( $results ) {
+            foreach ( $results as $result ) {
+                $name = str_replace( $sanitized_string . '_', '', $result['option_name'] );
+				$explode = explode('_', $name );
+				$value = $result['option_value']; 
+				if ( ! empty( $explode[0] ) && ! empty( $explode[1] ) ) {
+				    $return[ sanitize_key( $explode[0] ) ][ sanitize_key( $explode[1] ) ] = $value;
+				}
+			}
 		}
 		return $return;
 	}
 }
-
-if ( !class_exists( 'WP_Improved_Settings\WP_Improved_Settings' ) ) {
-class WP_Improved_Settings {
-	// loosely based on wc-dynamic-pricing-and-discounts/classes/rp-wcdpd-settings.class.php
-	public $settingsStructure = array();
+if ( !class_exists( 'wpdeepl_WP_Improved_Settings\wpdeepl_WP_Improved_Settings' ) ) {
+class wpdeepl_WP_Improved_Settings {
+	/**
+	 * Settings structure from configuration
+	 *
+	 * @var array
+	 */
+	protected $settingsStructure = array();
+	
+	/**
+	 * Extended actions for maintenance tasks
+	 *
+	 * @var array
+	 */
 	public $extendedActions = array();
 
+	/**
+	 * Plugin paths cache
+	 *
+	 * @var array
+	 */
+	protected $plugins_paths = array();
 
-	public $plugins_paths = array();
+	/**
+	 * Settings API instance
+	 *
+	 * @var WC_Improved_Settings_API
+	 */
+	protected $WC_Improved_Settings_API;
 
-	public $WC_Improved_Settings_API;
-
+	// Configuration properties
 	public $isMainMenu = false;
 	public $plugin_id;
 	public $menu_order = 20;
@@ -75,86 +111,17 @@ class WP_Improved_Settings {
 	public $post_type = false;
 
 
-/*Dashboard: 'index.php'
-Posts: 'edit.php'
-Media: 'upload.php'
-Pages: 'edit.php?post_type=page'
-Comments: 'edit-comments.php'
-Custom Post Types: 'edit.php?post_type=your_post_type'
-Appearance: 'themes.php'
-Plugins: 'plugins.php'
-Users: 'users.php'
-Tools: 'tools.php'
-Settings: 'options-general.php'
-Network Settings: 'settings.php'
-WooCommerce : 'woocommerce'
-*/
-
 	public function __construct() {
-		// Register settings
-
 		add_action( 'admin_init', array( $this, 'loadSettings' ) );
 		add_action( 'admin_init', array( $this, 'registerSettings' ) );
 
-		$this->plugins_paths = apply_filters('zebench_plugins_paths', array() );
+		$this->plugins_paths = apply_filters('wpdeepl_zebench_plugins_paths', array() );
 
-		// Add link to menu
+		add_action( 'admin_menu', array( $this, 'addToMenu' ), $this->menu_order );
 
-		global $wp_filter;
-		$real_order = $this->menu_order;
-		while( isset( $wp_filter['admin_menu']->callbacks[$real_order] ) ) {
-			$real_order++;
-		}
-		add_action( 'admin_menu', array( $this, 'addToMenu' ), $real_order );
-
-		// Pass configuration to Javascript
-		//add_action( 'admin_enqueue_scripts', array( $this, 'configuration_to_javascript' ), 999 );
-
-		// Enqueue templates to be rendered in footer
-		//add_action( 'admin_footer', array( $this, 'render_templates_in_footer' ) );
-
-		// Settings export call
-		if ( !empty( $_REQUEST['export_settings'] ) ) {
-			add_action( 'wp_loaded', array( $this, 'export' ) );
-		}
-
-		// Settings import call
-		if ( !empty( $_FILES[$this->option_page]['name']['import'] ) ) {
-			add_action( 'wp_loaded', array( $this, 'import' ) );
-		}
-
-		// Print settings import notice
-		if ( isset( $_REQUEST[$this->option_page .'_imported'] ) ) {
-			add_action( 'admin_notices', array( $this, 'print_import_notice' ) );
-		}
-
-		if ( !class_exists( 'WP_Improved_Settings\WC_Improved_Settings_API' )) {
+		if ( !class_exists( 'wpdeepl_WP_Improved_Settings\WC_Improved_Settings_API' )) {
 			require_once( dirname( __FILE__ ) . '/wp-improved-settings-api.class.php' );
 		}
-		
-/*
-		$this->WC_Improved_Settings_API = new WC_Improved_Settings_API( $this->getPluginID(), $this->getSettingsStructure() );
-
-
-		$key_name = $this->plugin_id . '_options_save';
-		if ( isset( $_REQUEST['save'] ) && isset( $_REQUEST[$key_name] ) && $_REQUEST[$key_name] ) {
-			$this->saveSettings();
-//			echo " saving";
-			if ( method_exists( $this, 'on_save' ) ) {
-//				echo "on save update";
-				$this->on_save();
-			}
-
-			add_action( 'admin_notices', array( $this, 'print_saved_notice' ) );
-		}
-
-		add_action( 'admin_notices', array( $this, 'maybe_print_notices' ) );
-*/
-		// Migration notices
-		//add_action( 'admin_notices', array( $this, 'maybe_display_migration_notice' ), 1 );
-
-		// Delete migration notice
-		//$this->hide_migration_notice();
 	}
 
 	function getPluginID() {
@@ -169,15 +136,15 @@ WooCommerce : 'woocommerce'
 		return $this->minimum_capability;
 	}
 
-	function saveSettings() {
-		$nonce = isset( $_REQUEST['_zenonce'] ) ? $_REQUEST['_zenonce'] : false;
-		if ( ! wp_verify_nonce( $nonce, 'zesave_settings' ) ) {
-			$error_msg = __( 'Unable to submit this form, please refresh and try again.' );
-			return;
+	protected function saveSettings() {
+		// Vérification nonce (sera revérifiée dans l'API)
+		$nonce = isset( $_REQUEST['_wpdeepl_nonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpdeepl_nonce'] ) ) : false;
+		if ( ! wp_verify_nonce( $nonce, 'wpdeepl_save_settings' ) ) {
+			wp_die( esc_html__( 'Security check failed', 'wpdeepl' ) );
 		} 
 
+		// L'API gère sa propre vérification nonce
 		$this->WC_Improved_Settings_API->process_admin_options();
-		//$this->process_admin_options();
 	}
 /*
 	function me() {
@@ -191,15 +158,15 @@ WooCommerce : 'woocommerce'
 
 	function print_saved_notice() {
 		?>
-		<div id="message" class="updated notice is-dismissible"><p><strong><?php _e( 'Settings saved.' ); ?></strong></p></div>
+		<div id="message" class="updated notice is-dismissible"><p><strong><?php esc_html_e( 'Settings saved.', 'wpdeepl' ); ?></strong></p></div>
 		<?php
 	}
 
 	public function loadSettings() {
 		$this->settingsStructure =  $this->getSettingsStructure();
-		$this->WC_Improved_Settings_API = new WC_Improved_Settings_API( $this->getPluginID(), $this->settingsStructure );
+		$this->WC_Improved_Settings_API = new \wpdeepl_WP_Improved_Settings\WC_Improved_Settings_API( $this->getPluginID(), $this->settingsStructure );
 		// load settings into $this sttings ?
-		//plouf( $this->settingsStructure );		die( 'oka6z4e4z64ze4' );
+		//wpdeepl_debug_display( $this->settingsStructure );		die( 'oka6z4e4z64ze4' );
 	}
 
 	/**
@@ -227,25 +194,25 @@ WooCommerce : 'woocommerce'
 	 * @return void
 	 */
 	public function settingsPage() {
-
-
 		// Get current tab
-		$current_tab = ( isset( $_GET['tab'] ) ) ? htmlspecialchars( $_GET['tab'] ) : $this->defaultSettingsTab;
-
-//		plouf( $_POST );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- navigation tab, no data processing
+		$current_tab = ( isset( $_GET['tab'] ) ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : $this->defaultSettingsTab;
 
 		// Print header
 		$this->printHeader();
 
 		$this->printFields();
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- extendedActions is not defined by user input. 
 		if ( count( $this->extendedActions ) ) foreach ( $this->extendedActions as $action => $function ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- The action name is from the class definitions, not user input. 
 			if ( isset( $_REQUEST[$action] ) ) {
 				if ( function_exists( $function) ) {
 					$function();
 				}
 				else {
-					printf( __( 'Attention, fonction non définie %s' ), $function );
+					/* translators: function does not exist */
+					printf( esc_html__( 'Undefined function: %s', 'wpdeepl' ), esc_html( $function ) );
 				}
 			}
 		}
@@ -257,13 +224,18 @@ WooCommerce : 'woocommerce'
 		if ( !is_admin() ) {
 			return;
 		}
-
-		$key_name = $this->plugin_id . '_options_save';
-		if ( isset( $_REQUEST['save'] ) && isset( $_REQUEST[$key_name] ) && $_REQUEST[$key_name] ) {
+		
+		$key_value = false;
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- plugin_id is hardcoded.
+		if( isset( $_REQUEST[$this->plugin_id . '_options_save'] )  ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- plugin_id is hardcoded.
+			$key_value = sanitize_text_field( wp_unslash( $_REQUEST[$this->plugin_id . '_options_save'] ) );
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified in saveSettings()
+		if ( isset( $_REQUEST['save'] ) && $key_value ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified in saveSettings()
 			$this->saveSettings();
-//			echo " saving";
 			if ( method_exists( $this, 'on_save' ) ) {
-//				echo "on save update";
 				$this->on_save();
 			}
 
@@ -277,7 +249,10 @@ WooCommerce : 'woocommerce'
 			register_setting(
 				$this->option_page .'_group_' . $tab_key,
 				$this->option_page,
-				array( $this, 'validateSettings' )
+				array(
+					'type'              => 'array',
+					'sanitize_callback' => array( $this, 'sanitizeSettings' ),
+				)
 			);
 
 			// Iterate over sections
@@ -312,13 +287,34 @@ WooCommerce : 'woocommerce'
 		}
 	}
 
-	function validateSettings() {
-		return true;
+	/**
+	 * Sanitize settings before saving
+	 *
+	 * @param mixed $input The input value to sanitize.
+	 * @return mixed Sanitized value.
+	 */
+	public function sanitizeSettings( $input ) {
+		if ( ! is_array( $input ) ) {
+			return sanitize_text_field( $input );
+		}
+
+		$sanitized = array();
+		foreach ( $input as $key => $value ) {
+			$sanitized_key = sanitize_key( $key );
+			if ( is_array( $value ) ) {
+				$sanitized[ $sanitized_key ] = $this->sanitizeSettings( $value );
+			} else {
+				$sanitized[ $sanitized_key ] = sanitize_text_field( $value );
+			}
+		}
+		return $sanitized;
 	}
 
-	function getActiveTab() {
+	protected function getActiveTab() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified in saveSettings()
 		if ( isset( $_GET[ 'tab' ] ) ) {
-			$active_tab = htmlspecialchars( $_GET[ 'tab' ] );
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- navigation tab, sanitized, no data processing
+			$active_tab = sanitize_key( wp_unslash( $_GET[ 'tab' ] ) );
 		}
 		elseif ( $this->defaultSettingsTab != '' ) {
 			$active_tab = $this->defaultSettingsTab;
@@ -348,7 +344,7 @@ WooCommerce : 'woocommerce'
 		$active_tab = $this->getActiveTab();
 
 		$parent_menu = $this->parent_menu;
-		$parsed_url = parse_url( $parent_menu );
+		$parsed_url = wp_parse_url( $parent_menu );
 		$extended_url = '';
 		if ( isset( $parsed_url['query'] ) && strlen( $parsed_url['query'] ) ) {
 			$extended_url = '&' . $parsed_url['query'];
@@ -417,7 +413,7 @@ WooCommerce : 'woocommerce'
 		$tab_data = $this->settingsStructure[$active_tab];
 
 		
-		//plouf($tab_data, " T AB DATA");
+		//wpdeepl_debug_display($tab_data, " T AB DATA");
 
 
 		foreach ( $tab_data['sections'] as $section_id => $section ) {
@@ -430,7 +426,7 @@ WooCommerce : 'woocommerce'
 			);
 			$section_data = wp_parse_args( $section, $defaults );
 
-			//plouf( $section );
+			//wpdeepl_debug_display( $section );
 			?>
 			<h3 class="wc-settings-sub-title <?php echo esc_attr( $section_data['class'] ); ?>" id="<?php echo esc_attr( $section_id ); ?>"><?php echo wp_kses_post( $section_data['title'] ); ?></h3>
 			<?php if ( ! empty( $section_data['description'] ) ) : ?>
@@ -450,15 +446,16 @@ WooCommerce : 'woocommerce'
 				$fields[] = $field;
 			}
 
-			//plouf($fields, "on a fields");
+			//wpdeepl_debug_display($fields, "on a fields");
 
 			$this->WC_Improved_Settings_API->generate_settings_html( $fields );
 			?>
 			</table>
 			<?php
 			 if ( isset( $section['html'] ) && $section['html'] ) {
-			 	// not escaped 
-			 	echo ( $section['html'] );
+			 	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML already escaped, we need to ouput raw HTML
+			 	//echo ( $section['html'] );
+			 	echo wp_kses_post( $section['html'] );
 			}
 			?>
 
@@ -473,8 +470,10 @@ WooCommerce : 'woocommerce'
 					elseif ( function_exists( $action ) ) {
 						$action( $param );
 					}
+
 					else {
-						printf( __( 'Attention, fonction non définie %s' ), $action );
+						/* translators: name of the function not found */
+						printf( esc_html__( 'Undefined function: %s', 'wpdeepl' ), esc_html( $action ) );
 					}
 			}
 
@@ -484,13 +483,10 @@ WooCommerce : 'woocommerce'
 			<?php if ( count( $fields ) ) : ?>
 
 			<p class="submit">
-				<?php wp_nonce_field('zesave_settings', '_zenonce' ); ?>
+				<?php wp_nonce_field('wpdeepl_save_settings', '_wpdeepl_nonce' ); ?>
 				<?php if ( empty( $GLOBALS['hide_save_button'] ) ) : ?>
-					<button name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Update' ); ?>"><?php _e( 'Update' ); ?></button>
+					<button name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Update', 'wpdeepl' ); ?>"><?php esc_html_e( 'Update', 'wpdeepl' ); ?></button>
 				<?php endif; ?>
-				<?php
-				// wp_nonce_field( 'woocommerce-settings' );
-				?>
 			</p>
 			<?php endif; ?>
 
@@ -509,16 +505,16 @@ WooCommerce : 'woocommerce'
 		<?php endif;
 	}
 
-	function tabFooter( $tab_id, $tab_data ) {
+	protected function tabFooter( $tab_id, $tab_data ) {
 		if ( isset( $tab_data['footer'] ) ) {
 			if ( isset( $tab_data['footer']['html'] ) ) foreach ( $tab_data['footer']['html'] as $raw_html ) {
-				//  not escaped
-				echo ( $raw_html );
+				// HTML déjà échappé dans la configuration
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo $raw_html;
 			}
 			if ( isset( $tab_data['footer']['actions'] ) ) {
 				echo '<hr />';
 				foreach ( $tab_data['footer']['actions'] as $action ) {
-		//				echo " ACTION = $action";
 					$param = false;
 
 					if ( is_array( $action ) ) {
@@ -531,9 +527,9 @@ WooCommerce : 'woocommerce'
 						$action( $param );
 					}
 					else {
-						printf( __( 'Attention, fonction non définie %s' ), $action );
+						/* translators: name of the function not found */
+						printf( esc_html__( 'Undefined function: %s', 'wpdeepl' ), esc_html( $action ) );
 					}
-					//plouf($action, "action");
 				}
 			}
 		}
@@ -557,7 +553,7 @@ WooCommerce : 'woocommerce'
 
 
 	public function showServerInfo() {
-		echo '<h2>' . __('Server information', '' ) . '</h2>';
+		echo '<h2>' . esc_html__('Server information', 'wpdeepl' ) . '</h2>';
 
 		if( function_exists('ini_get_all' ) )  {
 
@@ -580,7 +576,7 @@ WooCommerce : 'woocommerce'
 		}
 
 		$informations = array(
-			'Server time'	=> date('d/m/Y H:i:s'),
+			'Server time'	=> gmdate('d/m/Y H:i:s'),
 			'Real path'		=> get_home_path(),
 			'PHP version'	=> phpversion(),
 			'Timeout'		=> $timeout .' s',
@@ -598,7 +594,7 @@ WooCommerce : 'woocommerce'
 		}
 
 		foreach ($informations as $label => $value) {
-			printf( "<p><strong>%s</strong>&nbsp;%s</p>", $label, $value );
+			printf( "<p><strong>%s</strong>&nbsp;%s</p>", esc_html( $label ), esc_html( $value ) );
 		}
 
 
@@ -611,18 +607,10 @@ WooCommerce : 'woocommerce'
 		if ( !is_admin() ) {
 			return false;
 		}
-		/*$current_plugin_page = $_REQUEST['page'];
-
-		plouf($this->plugin_paths);
-		if ( !isset( $this->plugin_paths[$current_plugin_page] ) ) {
-			echo "no path";
-			return false;
-		}
-		$path = $this->plugin_paths[$current_plugin_page];*/
 		$path = $this->log_folder;
 
 		$logs = glob( trailingslashit( $path ) . '*.log');
-		//plouf($logs, "LOGS");
+		//wpdeepl_debug_display($logs, "LOGS");
 		if ($logs) foreach ($logs as $log_file) {
 			$file_name = basename( $log_file );
 			$contents = file_get_contents( $log_file );
@@ -630,9 +618,10 @@ WooCommerce : 'woocommerce'
 				$date = $match[2] . '/' . $match[1];
 				echo '<h3>';
 				printf(
-					__("Fichier '%s' pour %s" ),
-					$match[3],
-					$date
+					/* translators: 1. file name 2. month */
+					esc_html__("File '%1\$s' for %2\$s", 'wpdeepl' ),
+					esc_html( $match[3] ),
+					esc_html( $date )
 				);
 				echo '</h3>';
 				$lines = explode( "\n", $contents);
@@ -643,10 +632,10 @@ WooCommerce : 'woocommerce'
 					if ( stripos( $line, '<!DOCTYPE html>' ) ) {
 						continue;
 					}
-					// not escaped
-					echo "<br /><br />" . ( $line ) . "\n";
+				// Contenu log potentiellement dangereux - échapper
+				echo "<br /><br />" . esc_html( $line ) . "\n";
 				}
-				//plouf($contents);
+				//wpdeepl_debug_display($contents);
 
 			}
 		}

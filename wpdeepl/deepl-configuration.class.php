@@ -1,8 +1,8 @@
 <?php
-
-class DeepLConfiguration {
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+class DeeplConfiguration {
 	static function getAPIKey() {
-		return apply_filters( __METHOD__, trim( get_option( 'wpdeepl_api_key' ) ) );
+		return apply_filters( 'wpdeepl_' . __METHOD__, trim( get_option( 'wpdeepl_api_key' ) ) );
 	}
 	static function getAPIServer() {
 		$choice = get_option( 'wpdeepl_api_server');
@@ -12,10 +12,10 @@ class DeepLConfiguration {
 		$possibilities = self::getDeepLAPIServers();
 
 		if ( isset( $possibilities[$choice] ) ) {
-			return apply_filters( __METHOD__,  $possibilities[$choice]['server'], $choice, $possibilities );
+			return apply_filters( 'wpdeepl_' . __METHOD__,  $possibilities[$choice]['server'], $choice, $possibilities );
 		}
 		else {
-			return apply_filters( __METHOD__, false, $choice, $possibilities );
+			return apply_filters( 'wpdeepl_' . __METHOD__, false, $choice, $possibilities );
 		}
 	}
 
@@ -63,7 +63,7 @@ class DeepLConfiguration {
 	}
 
 	static function getLogLevel() {
-		return apply_filters( __METHOD__, get_option( 'wpdeepl_log_level') );
+		return apply_filters( 'wpdeepl_' . __METHOD__, get_option( 'wpdeepl_log_level') );
 	}
 
 	static function getActivePostTypes() {
@@ -71,29 +71,29 @@ class DeepLConfiguration {
 		$return = get_option( 'wpdeepl_pro_post_types' ) ? array_merge( $return, get_option( 'wpdeepl_pro_post_types' ) ) : $return;
 		
 		$return = array_unique( $return );
-		return apply_filters( __METHOD__, $return );
+		return apply_filters( 'wpdeepl_' . __METHOD__, $return );
 
 	}
 	static function getMetaBoxPostTypes() {
-		return apply_filters( __METHOD__, get_option( 'wpdeepl_metabox_post_types' ) );
+		return apply_filters( 'wpdeepl_' . __METHOD__, get_option( 'wpdeepl_metabox_post_types' ) );
 	}
 	static function getMetaBoxDefaultBehaviour() {
 		return 'replace';
-		return apply_filters( __METHOD__, get_option( 'wpdeepl_metabox_behaviour' ) );
+		return apply_filters( 'wpdeepl_' . __METHOD__, get_option( 'wpdeepl_metabox_behaviour' ) );
 	}
 	static function getDefaultTargetLanguage() {
-		return apply_filters( __METHOD__, get_option( 'wpdeepl_default_language' ) );
+		return apply_filters( 'wpdeepl_' . __METHOD__, get_option( 'wpdeepl_default_language' ) );
 	}
 
 	static function getDisplayedLanguages() {
 		$value = get_option( 'wpdeepl_displayed_languages') ;
-		return apply_filters( __METHOD__, $value );
+		return apply_filters( 'wpdeepl_' . __METHOD__, $value );
 	}
 	static function getMetaBoxContext() {
-		return apply_filters( __METHOD__, get_option( 'wpdeepl_metabox_context' ) );
+		return apply_filters( 'wpdeepl_' . __METHOD__, get_option( 'wpdeepl_metabox_context' ) );
 	}
 	static function getMetaBoxPriority() {
-		return apply_filters( __METHOD__, get_option( 'wpdeepl_metabox_priority' ) );
+		return apply_filters( 'wpdeepl_' . __METHOD__, get_option( 'wpdeepl_metabox_priority' ) );
 	}
 
 	static function usingMultilingualPlugins() {
@@ -101,7 +101,7 @@ class DeepLConfiguration {
 	}
 
 	static function getNonceAction() {
-		return apply_filters( __METHOD__, 'deepl_translate_post' );
+		return apply_filters( 'wpdeepl_' . __METHOD__, 'deepl_translate_post' );
 	}
 
 	static function getActiveGlossaryFor( $source_language, $target_language) {
@@ -109,7 +109,7 @@ class DeepLConfiguration {
 		$target = !empty( $target_language ) ? strtolower( substr( $target_language, 0, 2 ) ) : false;
 		$active_glossary_id = false;
 		if( $source && $target) $active_glossary_id = get_option( 'wpdeepl_glossary_' . $source. '_' . $target );
-		return apply_filters( __METHOD__, $active_glossary_id );
+		return apply_filters( 'wpdeepl_' . __METHOD__, $active_glossary_id );
 	}
 
 
@@ -123,12 +123,6 @@ class DeepLConfiguration {
 		return get_option( 'wpdeepl_plugin_installed' );
 	}
 
-	static function execWorks() {
-		if ( exec( 'echo EXEC' ) == 'EXEC' ){
-		 return true;
-		}
-		return false;
-	}
 
 	static function validateLang( $language_string, $output = 'assource' ) {
 		// output source will return 2 characters
@@ -141,9 +135,9 @@ class DeepLConfiguration {
 			$language_string = 'NO';
 		}
 
-		$all_languages = DeepLConfiguration::DefaultsAllLanguages();
+		$all_languages = DeeplConfiguration::DefaultsAllLanguages();
 		$locale = get_locale();
-		//plouf( $locale, "\n locale" );
+		//wpdeepl_debug_display( $locale, "\n locale" );
 
 
 		//if( $language_string == 'nn_NO' ) 			$language_string = 'no_NO';
@@ -157,7 +151,7 @@ class DeepLConfiguration {
 
 		$language = false;
 		if( $output == 'astarget' ) {
-			//plouf( $all_languages[$language_string]," lang  $language_string  locale $locale"); 			plouf( $all_languages);
+			//wpdeepl_debug_display( $all_languages[$language_string]," lang  $language_string  locale $locale"); 			wpdeepl_debug_display( $all_languages);
 		}
 		if ( isset( $all_languages[$language_string] ) ) {
 			$language = $all_languages[$language_string];
@@ -184,7 +178,7 @@ class DeepLConfiguration {
 		}
 
 		if( $output == 'astarget' ) {
-			//plouf( $language, "language, locale $locale");
+			//wpdeepl_debug_display( $language, "language, locale $locale");
 		}
 		$language['label'] = isset( $language['labels'][$locale] ) ? $language['labels'][$locale] : false;
 
@@ -213,14 +207,14 @@ class DeepLConfiguration {
 			'replace'		=> __( 'Replace content', 'wpdeepl' ),
 			'append'		=> __( 'Append to content', 'wpdeepl' )
 		);
-		return apply_filters( __METHOD__ , $array );
+		return apply_filters( 'wpdeepl_' . __METHOD__ , $array );
 	}
 
 	static function getFormalityLevel( $target_lang = false ) {
 		if ( $target_lang ) {
 			$formality_level = get_option('wpdeepl_formality_' . $target_lang );
 		}
-		if( !$formality_level || $formality_level == 'default' ) {
+		if( !$formality_level || $formality_level == 'wpdeepl' ) {
 			$formality_level = get_option( 'wpdeepl_default_formality' );
 		}
 
@@ -233,11 +227,11 @@ prefer_more - for a more formal language if available, otherwise fallback to def
 prefer_less - for a more informal language if available, otherwise fallback to default formality
 		 * */
 
-		if( $formality_level != 'default' ) {
+		if( $formality_level != 'wpdeepl' ) {
 			$formality_level = 'prefer_' . $formality_level;
 		}
 
-		return apply_filters( __METHOD__, $formality_level, $target_lang );
+		return apply_filters( 'wpdeepl_' . __METHOD__, $formality_level, $target_lang );
 	}
 
 	static function getLanguagesAllowingFormality() {
@@ -249,12 +243,12 @@ prefer_less - for a more informal language if available, otherwise fallback to d
 		$locale = get_locale();
 		$locale = str_replace( '_formal', '', $locale );
 		$locale = str_replace( '_informal', '', $locale );
-		$all_languages = DeepLConfiguration::DefaultsAllLanguages();
+		$all_languages = DeeplConfiguration::DefaultsAllLanguages();
 		$languages = array();
 		foreach ( $all_languages as $isocode => $labels ) {
 			$languages[$isocode] = isset( $labels['labels']) && isset( $labels['labels'][$locale] ) ? $labels['labels'][$locale] : false;
 		}
-		return apply_filters( __METHOD__ , $languages );
+		return apply_filters( 'wpdeepl_' . __METHOD__ , $languages );
 	}
 
 	static function getLanguageFromIsoCode2( $isocode2, $context = 'target' ) {
@@ -273,14 +267,34 @@ prefer_less - for a more informal language if available, otherwise fallback to d
 	static function DefaultsAllLanguages() {
 		$languages = array();
 
-		$handle = fopen( trailingslashit( WPDEEPL_PATH ) . 'languages.csv', 'r' );
-		$csv_data = array();
-		if ( $handle ) {
-			while( $data = fgetcsv( $handle, null, ',', '"' ) ) {
-				$csv_data[] = $data;
-			}
+		global $wp_filesystem;
+		if ( empty( $wp_filesystem ) ) {
+		    require_once( ABSPATH . 'wp-admin/includes/file.php' );
+		    if ( ! WP_Filesystem() ) {
+		        return $csv_data; // Retourne un tableau vide en cas d'échec
+		    }
 		}
-		//plouf( $csv_data, " alors data");
+		$file_path = wp_normalize_path( trailingslashit( WPDEEPL_PATH ) . 'languages.csv' );
+		$csv_contents = $wp_filesystem->get_contents( $file_path ); 
+		$csv_data = array();
+
+		if ( $csv_contents ) {
+		    $lines = explode( "\n", $csv_contents ); 
+		    foreach ( $lines as $line ) {
+		        // Ignorer les lignes vides
+		        $line = trim( $line );
+		        if ( empty( $line ) ) {
+		            continue;
+		        }
+		        $data = str_getcsv( $line, ',', '"', "\\" ); 
+
+		        if ( is_array( $data ) && ! empty( $data ) ) {
+		            $csv_data[] = $data;
+		        }
+		    }
+		}
+		
+		//wpdeepl_debug_display( $csv_data, " alors data");
 		$headers = array_shift( $csv_data );
 		if( $csv_data ) foreach ( $csv_data as $labels ) {
 			$labels = array_combine( $headers, $labels );
@@ -308,10 +322,12 @@ prefer_less - for a more informal language if available, otherwise fallback to d
 			$languages[$locale]['labels'] = $labels;
 		}
 
-		return apply_filters( __METHOD__, $languages );
+		return apply_filters( 'wpdeepl_' . __METHOD__, $languages );
 
 		// used for.. something else
+		/* translators: strings used in extended functions. Target lang */
 		$test = __('Translate to %s', 'wpdeepl' );
+		/* translators: strings used in extended functions. Number of posts */
 		$test = __('Translated %d posts.', 'wpdeepl');
 		$test = __('Bulk translate', 'wpdeepl');
 		$test = __('Content types', 'wpdeepl');
@@ -323,10 +339,10 @@ prefer_less - for a more informal language if available, otherwise fallback to d
 
  // might serve somewhere
  	static function getContentTypes() {
-		return apply_filters( __METHOD__, get_option('wpdeepl_contents_to_translate') );
+		return apply_filters( 'wpdeepl_' . __METHOD__, get_option('wpdeepl_contents_to_translate') );
 	}
 	static function getTargetLocales() {
-		return apply_filters( __METHOD__, get_option( 'wpdeepl_target_locales') );
+		return apply_filters( 'wpdeepl_' . __METHOD__, get_option( 'wpdeepl_target_locales') );
 	}
 
 	static function usingPolylang() {
@@ -334,7 +350,7 @@ prefer_less - for a more informal language if available, otherwise fallback to d
 	}
 
 	static function getBulkTargetLanguages() {
-		return apply_filters( __METHOD__, get_option( 'wpdeepl_bulk_target_locales' ) );
+		return apply_filters( 'wpdeepl_' . __METHOD__, get_option( 'wpdeepl_bulk_target_locales' ) );
 	}
 }
 

@@ -1,19 +1,18 @@
 <?php
-
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 add_action( 'init', 'deepl_init_admin', 40 );
 function deepl_init_admin() {
 	if ( !is_admin() ) {
 		return;
 	}
-
 	if ( DeepLConfiguration::isPluginInstalled() === false ) {
  		deepl_install_plugin();
  	}
 
-	global $WP_Improved_Settings_DeepL;
+	global $wpdeepl_WP_Improved_Settings_DeepL;
 
-	if ( !$WP_Improved_Settings_DeepL ) {
-		$WP_Improved_Settings_DeepL = new WP_Improved_Settings_DeepL();
+	if ( !$wpdeepl_WP_Improved_Settings_DeepL ) {
+		$wpdeepl_WP_Improved_Settings_DeepL = new wpdeepl_WP_Improved_Settings\wpdeepl_WP_Improved_Settings_DeepL();
 	}
 
 	global $DeepL_Metabox;
@@ -25,10 +24,10 @@ add_action( 'admin_enqueue_scripts', 'deepl_load_admin_javascript' );
 function deepl_load_admin_javascript( $hook ) {
 
 	if ( $hook == 'settings_page_deepl_settings' ) {
-		wp_enqueue_style( 'deepl_admin', WPDEEPL_URL . '/assets/deepl-admin.css', array(), WPDEEPL_VERSION );
+		wp_enqueue_style( 'deepl_admin', WPDEEPL_URL . '/assets/wpdeepl-admin.css', array(), WPDEEPL_VERSION );
  	}
  	if ( $hook == 'settings_page_deepl_settings' || $hook == 'post.php' || $hook == 'post-new.php' ) {
- 		wp_enqueue_script( 'deepl_admin', trailingslashit( WPDEEPL_URL ) . 'assets/deepl-metabox.js' );
+ 		wp_enqueue_script( 'deepl_admin', trailingslashit( WPDEEPL_URL ) . 'assets/wpdeepl-metabox.js', false, WPDEEPL_VERSION, true );
  		wp_localize_script( 'deepl_admin', 'DeepLStrings', deepl_get_localized_strings() );
  }
 }
@@ -87,6 +86,6 @@ function wpdeepl_modify_list_row_actions( $actions, $post ) {
  'Test'
  );
  	}
- //plouf( $actions );
+ //wpdeepl_debug_display( $actions );
  return $actions;
 }

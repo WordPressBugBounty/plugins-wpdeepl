@@ -1,5 +1,5 @@
 <?php
-
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 class DeepL_Metabox {
 	protected $metabox_config = array();
 
@@ -14,11 +14,12 @@ class DeepL_Metabox {
 
 	public function add_meta_box() {
 		$post_types = DeepLConfiguration::getMetaBoxPostTypes();
-		//if ( WPDEEPL_DEBUG ) plouf($post_types, " context = " . DeepLConfiguration::getMetaBoxContext() . " prio ="  . DeepLConfiguration::getMetaBoxPriority() );
+
+		//if ( WPDEEPL_DEBUG ) wpdeepl_debug_display($post_types, " context = " . DeepLConfiguration::getMetaBoxContext() . " prio ="  . DeepLConfiguration::getMetaBoxPriority() );
 
 		add_meta_box(
 			'deepl_metabox',
-			__( 'DeepL translation', 'wpdeepl' ),
+			__( 'Translation with DeepL', 'wpdeepl' ),
 			array( &$this, 'output' ),
 			$post_types,
 			DeepLConfiguration::getMetaBoxContext(),
@@ -29,6 +30,7 @@ class DeepL_Metabox {
 	public function output() {
 
 		global $post;
+
 
 
 		$nonce_action = DeepLConfiguration::getNonceAction();
@@ -49,48 +51,12 @@ class DeepL_Metabox {
 		global $pagenow;
 		
 		if( $pagenow == 'post-new.php' ) {
-			_e('Please save or publish the post first', 'wpdeepl' );
+			esc_html_e('Please save or publish the post first', 'wpdeepl' );
 			return;
 
 		}
 		
 		add_action('admin_action_' . $action, 'deepl_translate_post_link' );
-
-//		echo '1';		return false;
-
-
-		//<form id="deepl_admin_translation" name="deepl_admin_translation" method="POST" action="post.php">
-		/*$target_lang = get_option( 'deepl_default_locale');
-		$current_language = false;
-		if( function_exists( 'pll_current_language' ) ) {
-			$current_language = pll_current_language();
-			if( $current_language ) {
-				$source_lang = DeepLConfiguration::getLanguageFromIsoCode2( $current_language );
-			}
-			else {
-				$terms = wp_get_post_terms( $post->ID,'language' );
-				if( $terms ) {
-					$language = $terms[0];
-					$source_lang = DeepLConfiguration::getLanguageFromIsoCode2( $language->slug  );
-				}
-			}
-		}
-
-		//$target_lang = DeepLConfiguration::getDefaultTargetLanguage();
-		$target_lang = false;
-
-		$html = '
-			<input type="hidden" id="deepl_action"  name="deepl_action" value="' . $action .'" />
-			<input type="hidden" id="deepl_force_polylang" name="deepl_force_polylang" value="1" />
-			' . wp_nonce_field( $nonce_action, '_deeplnonce', false, false ) .'
-			' . deepl_language_selector( 'source', 'deepl_source_lang', $source_lang ) . '
-			<br />' . __( 'Translating to', 'wpdeepl' ) . '<br />
-			' . deepl_language_selector( 'target', 'deepl_target_lang', $target_lang, $source_lang ) . '
-			<span id="deepl_error" class="error" style="display: none;"></span>
-			<input id="deepl_translate_do" type="submit" class="button button-primary button-large" value="' . __( 'Translate' , 'wpdeepl' ) . '">
-			<hr />';
-		//$html .= "\n current $current_language / source $source_lang / target $target_lang ";
-		*/
 
 		$target_lang = get_option( 'deepl_default_locale');
 		if( function_exists( 'pll_current_language' ) ) {
@@ -109,21 +75,21 @@ class DeepL_Metabox {
 
 
 		$html = '
-			<input type="hidden" id="deepl_action"  name="deepl_action" value="' . $action .'" />
-			<input type="hidden" id="deepl_force_polylang" name="deepl_force_polylang" value="1" />
-			' . wp_nonce_field( $nonce_action, '_deeplnonce', false, false ) .'
-			' . deepl_language_selector( 'source', 'deepl_source_lang', false ) . '
-			<br />' . __( 'Translating to', 'wpdeepl' ) . '<br />
-			' . deepl_language_selector( 'target', 'deepl_target_lang', $target_lang ) . '
-			<span id="deepl_error" class="error" style="display: none;"></span>
-			<input id="deepl_translate_do" type="submit" class="button button-primary button-large" value="' . __( 'Translate' , 'wpdeepl' ) . '">
+			<input type="hidden" id="wpdeepl_action"  name="wpdeepl_action" value="' . esc_attr( $action ) .'" />
+			<input type="hidden" id="wpdeepl_force_polylang" name="wpdeepl_force_polylang" value="1" />
+			' . wp_nonce_field( $nonce_action, '_wpdeeplnonce', false, false ) .'
+			' . wpdeepl_language_selector( 'source', 'wpdeepl_source_lang', false ) . '
+			<br />' . esc_html__( 'Translating to', 'wpdeepl' ) . '<br />
+			' . wpdeepl_language_selector( 'target', 'wpdeepl_target_lang', $target_lang ) . '
+			<span id="wpdeepl_error" class="error" style="display: none;"></span>
+			<input id="deepl_translate_do" type="submit" class="button button-primary button-large" value="' . esc_attr__( 'Translate' , 'wpdeepl' ) . '">
 			<hr />';
 
 
 		foreach ( $default_metabox_behaviours as $value => $label ) {
 			$html.= '
 			<span style="display: block;">
-				<input type="radio"  name="deepl_replace" value="'. $value .'"';
+				<input type="radio"  name="wpdeepl_replace" value="'. $value .'"';
 
 			if ( $value == $default_behaviour ) {
 				$html .= ' checked="checked"';
@@ -132,7 +98,7 @@ class DeepL_Metabox {
 				$html .= ' disabled="disabled"';
 			}
 			$html .= '>
-				<label for="deepl_replace">' . $label . '</label>
+				<label for="wpdeepl_replace">' . $label . '</label>
 			</span>';
 		}
 	
@@ -142,6 +108,30 @@ class DeepL_Metabox {
 		';
 
 		$html = apply_filters( 'deepl_metabox_html', $html);
-		echo ( $html);
+		// Allow form elements for metabox functionality
+		$allowed_tags = array_merge(
+			wp_kses_allowed_html( 'post' ),
+			array(
+				'input' => array(
+					'type' => true,
+					'id' => true,
+					'name' => true,
+					'value' => true,
+					'checked' => true,
+					'disabled' => true,
+					'class' => true,
+				),
+				'select' => array(
+					'id' => true,
+					'name' => true,
+					'class' => true,
+				),
+				'option' => array(
+					'value' => true,
+					'selected' => true,
+				),
+			)
+		);
+		echo wp_kses( $html, $allowed_tags );
 	}
 }

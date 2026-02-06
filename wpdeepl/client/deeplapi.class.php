@@ -1,5 +1,5 @@
 <?php
-
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 abstract class DeepLApi extends DeepLData {
 	protected $endPoint		= '';
 	protected $http_mode = '';
@@ -312,7 +312,7 @@ abstract class DeepLApi extends DeepLData {
 	public function getEndPointURL( $add_auth_key = false ) {
 
 
-		$APIServer = DeeplConfiguration::getAPIServer();
+		$APIServer = DeepLConfiguration::getAPIServer();
 		if ( !$this->endPointURL ) {
 			if ( $this->endPoint === '' ) {
 				$this->endPointURL = $APIServer;
@@ -348,7 +348,7 @@ abstract class DeepLApi extends DeepLData {
 		$args['headers'] = $this->addHeaders( $args['headers'] );
 		$args['body'] = $this->buildBody( 'POST', $this->endPoint );
 
-		//plouf( $args ,__METHOD__ . "args");
+		//wpdeepl_debug_display( $args ,__METHOD__ . "args");
 
 		/*
 		$args['auth_key'] = $this->authKey;
@@ -373,7 +373,7 @@ abstract class DeepLApi extends DeepLData {
 		$bits = array_merge( array( $remoteURL, 'POST' ), $args );
 		// unsafe
 		//wpdeepl_log( $bits, 'apiRequests');
-//		plouf( $args, "args" ); 
+//		wpdeepl_debug_display( $args, "args" ); 
 /*
 		$exec = "curl -X POST '$remoteURL' \\\n";
 		foreach( $args['headers'] as $key => $value ) {
@@ -383,26 +383,26 @@ abstract class DeepLApi extends DeepLData {
 			$exec .= "-d '$value' \\\n";
 		}
 
-		plouf( $exec );
+		wpdeepl_debug_display( $exec );
 		$response = exec ( $exec );
-		plouf( $response );
+		wpdeepl_debug_display( $response );
 		die('okaz4a6e4a68e4a86e');
 		*/
 
-		//plouf( $args, $remoteURL );		die('68z4e6z48a68ee8aok');
+		//wpdeepl_debug_display( $args, $remoteURL );		die('68z4e6z48a68ee8aok');
 
 		//$args['body'] = str_replace('target_lang=NO', 'target_lang=NB', $args['body'] );
 		$response = wp_remote_post( $remoteURL, $args );
-		//plouf( $args, $remoteURL, " post request");				plouf( $response );		die('okesoezporjkezor');
+		//wpdeepl_debug_display( $args, $remoteURL, " post request");				wpdeepl_debug_display( $response );		die('okesoezporjkezor');
 
-//		plouf( $args, " args pour $remoteURL" ); 		plouf( $response, "zeirjzpeijrpizerjpirj" );		die('okaze6aze44e');
-		//plouf( $args, "args");
+//		wpdeepl_debug_display( $args, " args pour $remoteURL" ); 		wpdeepl_debug_display( $response, "zeirjzpeijrpizerjpirj" );		die('okaze6aze44e');
+		//wpdeepl_debug_display( $args, "args");
 
-//		plouf( $args, "POST request to $remoteURL ");die('okaz5ea5zea4e');
+//		wpdeepl_debug_display( $args, "POST request to $remoteURL ");die('okaz5ea5zea4e');
 
 		if ( is_wp_error( $response ) ) {
 			$this->response = $response->get_error_message();
-				plouf( $args, $this->getEndPointURL() );
+				wpdeepl_debug_display( $args, $this->getEndPointURL() );
 				die( __METHOD__ );
 		}
 		else {
@@ -444,10 +444,10 @@ abstract class DeepLApi extends DeepLData {
 		// unsafe
 		//wpdeepl_log( $bits, 'apiRequests');
 
-//		plouf( $args, $remoteURL );		die('oazea4ze9684e84azek');
+//		wpdeepl_debug_display( $args, $remoteURL );		die('oazea4ze9684e84azek');
 		
 		$response = wp_remote_get( $remoteURL, $args );
-		//plouf( $args, $remoteURL ); plouf( $response ); die('ok');
+		//wpdeepl_debug_display( $args, $remoteURL ); wpdeepl_debug_display( $response ); die('ok');
 		if ( is_wp_error( $response ) ) {
 			$this->response = $response->get_error_message();
 		} else {

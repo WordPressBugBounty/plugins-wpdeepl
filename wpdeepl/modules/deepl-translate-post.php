@@ -1,8 +1,10 @@
 <?php
-
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 function deepl_get_translation_results_in_admin() {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Heavily sanitizing to check if one param is set to 1
 	if ( isset( $_GET['translated'] ) ) {
-		if ( filter_var( $_GET['translated'], FILTER_VALIDATE_INT ) == 1 ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Heavily sanitizing to check if one param is set to 1
+		if ( filter_var( wp_unslash($_GET['translated']), FILTER_VALIDATE_INT ) == 1 ) {
 			$deepl_result = 'success';
 			$message = __( 'This post has been translated.', 'wpdeepl' );
 		}
@@ -24,8 +26,8 @@ function deepl_admin_notice_nogutenberg_deepl_translated() {
 	extract( $results );
 	if( !empty( $message ) ) {
 		echo '
-		<div class="notice notice-'. $deepl_result. ' is-dismissible">
-		      <p>' . $message . '</p>
+		<div class="notice notice-' . esc_attr($deepl_result) . ' is-dismissible">
+		      <p>' . esc_html($message) . '</p>
 		</div>'; 
 
 	}
@@ -42,12 +44,12 @@ function deepl_admin_notice_gutenberg_deepl_translated() {
 
 		jQuery(document).ready(function() {
 			if( typeof wp !== 'undefined' && typeof wp.data !== 'undefined' ) {
-				var result_type = '<?php echo $deepl_result; ?>';
+				var result_type = '<?php echo esc_js($deepl_result); ?>';
 				if( result_type == 'success' ) {
-					wp.data.dispatch( 'core/notices').createSuccessNotice( '<?php echo addslashes( $message ); ?>', 'deepl-result');
+					wp.data.dispatch( 'core/notices').createSuccessNotice( '<?php echo esc_js( $message ); ?>', 'deepl-result');
 				}
 				else {
-					wp.data.dispatch( 'core/notices').createWarningNotice( '<?php echo addslashes( $message ); ?>', 'deepl-result');	
+					wp.data.dispatch( 'core/notices').createWarningNotice( '<?php echo esc_js( $message ); ?>', 'deepl-result');	
 				}
 			}
 			else {
@@ -59,53 +61,56 @@ function deepl_admin_notice_gutenberg_deepl_translated() {
 	<?php
 	endif;
 }
-//https://wpdeepl.zebench.net/wp-admin/post.php?post=134&action=deepl_translate_post_do&deepl_source_lang=auto&deepl_target_lang=en_GB&behaviour=replace&_deeplnonce=60a9264039
-add_action('admin_init', 'deepl_maybe_translate_post' );
+//https://wpdeepl.zebench.net/wp-admin/post.php?post=134&action=deepl_translate_post_do&wpdeepl_source_lang=auto&wpdeepl_target_lang=en_GB&behaviour=replace&_wpdeeplnonce=60a9264039
+add_action( 'admin_init', 'deepl_maybe_translate_post' ); 
+
 function deepl_maybe_translate_post() {
-	$local_debug = true;
-	$local_debug = false;
-	if ( !isset( $_GET['deepl_action']) ) {
-		if( $local_debug ) die('1');
-		return;
-	}
-	if ( !isset($_GET['deepl_action']) || html_entity_decode( $_GET['deepl_action'] ) != 'deepl_translate_post_do' ) {
-		if( $local_debug ) die('2');
-		return;
-	}
-	if ( !isset( $_GET['_deeplnonce'] ) ) {
-		if( $local_debug ) die('3');
-		return;
-	}
-	if ( !wp_verify_nonce( $_GET['_deeplnonce'], DeepLConfiguration::getNonceAction() ) ) {
-		if( $local_debug ) die('4');
+
+	$action = isset( $_GET['wpdeepl_action'] ) ? sanitize_text_field( wp_unslash($_GET['wpdeepl_action']) ) : '';
+	
+	if ( ! $action || 'deepl_translate_post_do' !== $action ) {
 		return;
 	}
 
+	if ( ! current_user_can( 'edit_posts' ) ) { 
+		wp_die( esc_html__( 'You are not allowed to translate posts.', 'wpdeepl' ) );
+	}
+	
+	$nonce = filter_input( INPUT_GET, '_wpdeeplnonce', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+	$nonce_action = DeepLConfiguration::getNonceAction();
 
-
+	if ( ! $nonce || ! wp_verify_nonce( $nonce, $nonce_action ) ) {
+		wp_die( esc_html__( 'Security check failed.', 'wpdeepl' ) );
+	}
+	
 	$args = array();
-	$args['ID'] = filter_var( $_GET['post'] , FILTER_VALIDATE_INT );
-	$args['source_lang'] = html_entity_decode( $_GET['deepl_source_lang'] );
-	$args['target_lang'] = html_entity_decode( $_GET['deepl_target_lang'] );
-	$args['behaviour'] = html_entity_decode( $_GET['behaviour'] );
-	$args['force_polylang'] = filter_var( $_GET['deepl_force_polylang'], FILTER_VALIDATE_BOOLEAN );
+	$args['ID'] = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT ); 
+	if ( ! $args['ID'] ) { return; } // Arrêt si l'ID est invalide
+	
+	// Langues et comportement : Sanitization en texte simple.
+	$args['source_lang'] = sanitize_text_field( filter_input( INPUT_GET, 'wpdeepl_source_lang' ) ); 
+	$args['target_lang'] = sanitize_text_field( filter_input( INPUT_GET, 'wpdeepl_target_lang' ) );
+	$args['behaviour'] = sanitize_text_field( filter_input( INPUT_GET, 'behaviour' ) );
+	
+	// Force Polylang : Validation en BOOLEAN, puis cast strict.
+	$args['force_polylang'] = (bool) filter_input( INPUT_GET, 'wpdeepl_force_polylang', FILTER_VALIDATE_BOOLEAN );
 
+	//wpdeepl_debug_display( $_GET, " get");	wpdeepl_debug_display( $_POST, "post");	wpdeepl_debug_display( $args); 	die('zerpozerokre68rezr48');
+
+	// Lancement de la traduction (la fonction doit être sécurisée ailleurs)
 	$translated = deepl_translate_post_link( $args );
-	//echo "translaed ";	var_dump( $translated);
 
-	$redirection = admin_url( '/post.php?post=' . $args['ID'] . '&action=edit&translated=' );
-	if ( $translated )
-		$redirection .= '1';
-	else
-		$redirection .= '0';
-	if( $local_debug ) die('5 = ' . $redirection);
-		
-		//https://wpdeepl.zebench.net/wp-admin/post.php?post=130&action=edit&translated=1
-//	var_dump( $redirection);	die('gloubi boulga');
+	$redirection = admin_url( 'post.php' );
+	
+	$query_args = array(
+		'post'       => $args['ID'],
+		'action'     => 'edit',
+		'translated' => $translated ? '1' : '0',
+	);
 
-
-//	die("redirection $redirection " . __FUNCTION__ );
-	wp_redirect( $redirection );
+	// wp_safe_redirect est content de recevoir une URL construite via add_query_arg
+	$redirection = add_query_arg( $query_args, $redirection );
+	wp_safe_redirect( $redirection );
 	exit();
 }
 
@@ -143,7 +148,7 @@ function deepl_translate_post_link( $args ) {
 		'redirect'	=> true,
 	);
 	$args = wp_parse_args( $args, $defaults );
-	//plouf( $args );//	die('oiezrjzeoijr');
+	//wpdeepl_debug_display( $args );//	die('oiezrjzeoijr');
 	extract( $args );
 
 	$WP_Post = get_post( $args['ID'] );
@@ -157,8 +162,8 @@ function deepl_translate_post_link( $args ) {
 			wpdeepl_log( $log, 'errors');
 			if( $redirect ) {
 				$redirect = get_permalink( $translation_id );
-				die(" redirect $redirect " . __FUNCTION__ );
-				wp_redirect( $redirect );
+				//die(" redirect $redirect " . __FUNCTION__ );
+				wp_safe_redirect( $redirect );
 				exit();
 
 			}
@@ -174,23 +179,16 @@ function deepl_translate_post_link( $args ) {
 
 	foreach ( array( 'post_title', 'post_content', 'post_excerpt' ) as $key ) {
 		$option_key = 'wpdeepl_t' . $key;
-		if( WPDEEPL_DEBUG ) echo "\n option key $option_key = " . get_option( $option_key );
+		if( WPDEEPL_DEBUG ) echo "\n option key " . esc_html($option_key) . " = " . esc_html(get_option( $option_key ));
 		if( get_option( $option_key ) !== '' )
 			$strings_to_translate[$key] = $WP_Post->$key;
 	}
-
-	if( WPDEEPL_DEBUG ) plouf( $WP_Post, " WP POST" );
-
-
-
-	//plouf( $strings_to_translate);	echo "\n excertp = "; var_dump( $WP_Post->excerpt );	echo "\n post excertp"; var_dump( $WP_Post->post_excerpt) ;	die('okaze4az6e84e68a4e');
-
 
 	// shortcodes
 	foreach( $strings_to_translate as $key => $string ) {
 		preg_match_all( '#\[([a-z_0-9]+)]#m', $string, $matches );
 		if( $matches ) {
-			//plouf( $matches, $key );
+			//wpdeepl_debug_display( $matches, $key );
 			foreach( $matches[0] as $found ) {
 				//echo "\n '$found' to '<x>$found</x>' ";
 				$strings_to_translate[$key] = str_replace( $found, '<x>' . $found .'</x>', $strings_to_translate[$key] );
@@ -201,7 +199,7 @@ function deepl_translate_post_link( $args ) {
 
 	}
 	
-	if( WPDEEPL_DEBUG ) plouf( $strings_to_translate,  "avant filtre");
+	//if( WPDEEPL_DEBUG ) wpdeepl_debug_display( $strings_to_translate,  "avant filtre");
 
 	$strings_to_translate = apply_filters( 
 		'deepl_translate_post_link_strings', 
@@ -212,7 +210,7 @@ function deepl_translate_post_link( $args ) {
 		$bulk, 
 		$bulk_action
 	);
-	if( WPDEEPL_DEBUG ) plouf( $strings_to_translate,  "apres filtre");
+	//if( WPDEEPL_DEBUG ) wpdeepl_debug_display( $strings_to_translate,  "apres filtre");
 	
 
 	$no_translation = array();
@@ -222,15 +220,14 @@ function deepl_translate_post_link( $args ) {
 	}
 
 
-	//plouf( $strings_to_translate);	 die('okzeùlrkzpeorrkpzo');
+	//wpdeepl_debug_display( $strings_to_translate);	 die('okzeùlrkzpeorrkpzo');
 
 	$response = deepl_translate( $source_lang, $target_lang, $strings_to_translate );
 	if( WPDEEPL_DEBUG ) {
-		plouf( $response, " response de traduction");;
+		//wpdeepl_debug_display( $response, " response de traduction");;
 	}
 
-	//plouf( $strings_to_translate," from $source_lang to $target_lang ");	plouf( $response );
-	//die('zemozjpriook');
+	//wpdeepl_debug_display( $strings_to_translate," from $source_lang to $target_lang ");	wpdeepl_debug_display( $response );	die('zemozjpriook');
 
 	$log = array('ID'	=> $WP_Post->ID );
 	$log = array_merge( $log, json_decode( json_encode( $response ), true ) );
@@ -248,7 +245,7 @@ function deepl_translate_post_link( $args ) {
 		}
 
 
-		//plouf( $post_array );		die('oaze5az46ea6ze4a48eak');
+		//wpdeepl_debug_display( $post_array );		die('oaze5az46ea6ze4a48eak');
 		$post_array = apply_filters('deepl_translate_post_link_translated_array', 
 			$post_array,
 			$strings_to_translate, 
@@ -274,10 +271,10 @@ function deepl_translate_post_link( $args ) {
 			$post_array['post_content'] = html_entity_decode( $post_array['post_content'] );
 
 		}
-//		plouf( $response );		plouf( $post_array , " arz)ozoz");		plouf( wp_slash( $post_array ) );		 die('azezeeeaok');
+//		wpdeepl_debug_display( $response );		wpdeepl_debug_display( $post_array , " arz)ozoz");		wpdeepl_debug_display( wp_slash( $post_array ) );		 die('azezeeeaok');
 
 		if( WPDEEPL_DEBUG ) {
-			plouf( $post_array, " nouvelle post array ");;
+			//wpdeepl_debug_display( $post_array, " nouvelle post array ");;
 		}
 		
 		if (count( $post_array ) > 1 ) {

@@ -1,5 +1,5 @@
 <?php
-
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 class DeepLApiUsage extends DeepLApi {
 	protected $endPoint 	= 'usage';
  	public $allow_cache 	= false;

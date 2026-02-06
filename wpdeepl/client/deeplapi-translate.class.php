@@ -1,5 +1,5 @@
 <?php
-
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 class DeepLApiTranslate extends DeepLApi {
 	protected $endPoint = 'translate';
 
@@ -45,7 +45,7 @@ class DeepLApiTranslate extends DeepLApi {
 
 		//$string = addslashes( $string );
 
-		return apply_filters( __METHOD__, $string, $original_string );
+		return apply_filters( 'wpdeepl_' . __METHOD__, $string, $original_string );
 
 
 		$string = str_replace( '&nbsp;', ' ', $string );
@@ -113,7 +113,9 @@ class DeepLApiTranslate extends DeepLApi {
 
 
 		foreach( $splitted_strings as $i => $string ) {
-			echo "\n #$i = " . strlen( $string );
+			if ( WPDEEPL_DEBUG ) {
+				echo "\n #" . esc_html($i) . " = " . esc_html(strlen( $string ));
+			}
 		}
 		return $splitted_strings;
 	}
@@ -131,15 +133,13 @@ class DeepLApiTranslate extends DeepLApi {
 		$response = array();
 		$translated = array();
 		
-		//plouf( $strings , " zeirpejzirjzi" );		//die( 'okokok' );
-
-		
+		//wpdeepl_debug_display( $strings , " zeirpejzirjzi" );		//die( 'okokok' );
 
 		$extra_strings = array();
 		$extra_prepared_strings = array();
 		$prepared_strings = array();
 
-		if( $debug ) plouf( $strings);
+		if( $debug ) wpdeepl_debug_display( $strings);
 		if( $debug ) die('ok');
 		
 
@@ -147,7 +147,8 @@ class DeepLApiTranslate extends DeepLApi {
 			$prepared_string = $this->prepareString( $string, $string_index );
 
 			if( is_array( $prepared_string ) ) {
-				wpdeepl_log( array( __METHOD__, "is array", json_encode( $prepared_string ), json_encode( $_REQUEST) ), 'errors' );
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended --  Debug logging only, no data processing.
+				wpdeepl_log( array( __METHOD__, "is array", wp_json_encode( $prepared_string ) ), 'errors' );
 				return false;
 
 			}
@@ -193,7 +194,7 @@ class DeepLApiTranslate extends DeepLApi {
 		}
 		$translated = array();
 
-		//plouf( $strings_requests );		plouf( $this );		 die('oazeazepùiprjk');
+		//wpdeepl_debug_display( $strings_requests );		wpdeepl_debug_display( $this );		 die('oazeazepùiprjk');
 
 
 
@@ -208,7 +209,7 @@ class DeepLApiTranslate extends DeepLApi {
 				$translations[$key] = $string;
 
 			}
-			//plouf( $translations ); die('zerepzijrpjr');
+			//wpdeepl_debug_display( $translations ); die('zerepzijrpjr');
 			foreach( $translations as $index => $translation ) {
 
 				$real_index = $index;
@@ -230,8 +231,8 @@ class DeepLApiTranslate extends DeepLApi {
 			$translated['slug'] = str_replace( ' ', '-', $translated['slug'] );
 		}
 
-		//plouf( $this);
-		//plouf( $strings_requests , "strings reuqests"); 		plouf( $translated, " TRANSLATED" ); 		die('az54eaze684eaok');
+		//wpdeepl_debug_display( $this);
+		//wpdeepl_debug_display( $strings_requests , "strings reuqests"); 		wpdeepl_debug_display( $translated, " TRANSLATED" ); 		die('az54eaze684eaok');
 
 		return $translated;
 	}
@@ -245,7 +246,7 @@ class DeepLApiTranslate extends DeepLApi {
 		$string_indexes = array();
 		$i = 0;
 		$cache_id_strings = '';
-		//plouf( $strings) ;
+		//wpdeepl_debug_display( $strings) ;
 		foreach ( $strings as $string_index => $string ) {
 			if( empty( trim( $string ) ) ) {
 				unset( $strings[$string_index] );
@@ -265,13 +266,15 @@ class DeepLApiTranslate extends DeepLApi {
 		$cache_id = ( $this->request['source_lang'] ) ? $this->request['source_lang'] : 'AUTO';
 		$cache_id .= ':' . $this->request['target_lang'] . ':' . md5( $cache_id_strings );
 		$this->setCacheID( $cache_id );
-//		plouf( $strings, "strings donc cache id $cache_id");
+//		wpdeepl_debug_display( $strings, "strings donc cache id $cache_id");
 
-		//plouf($this);		die('okaziejaiej');
+		//wpdeepl_debug_display($this);		die('okaziejaiej');
 		if ( !$this->isValidRequest() ) {
 			$return = new WP_Error( "bad request", "Bof" );
 			return $return;
 		}
+
+//		wpdeepl_debug_display( $this ); die('rzeokroezrk');
 		
 
 		$response = $this->request();
@@ -296,9 +299,9 @@ class DeepLApiTranslate extends DeepLApi {
 			$translated[$string_index] = $translated_text;
 		}
 
-		//plouf( $response, "response" ); plouf( $string_indexes, "indexes"); plouf( $translated, "transalted");	
+		//wpdeepl_debug_display( $response, "response" ); wpdeepl_debug_display( $string_indexes, "indexes"); wpdeepl_debug_display( $translated, "transalted");	
 		//	die('okokeroz');
-		//plouf( $translated, "translated");die('oizeeizjrirj');
+		//wpdeepl_debug_display( $translated, "translated");die('oizeeizjrirj');
 		return $translated;
 	}
 
@@ -310,7 +313,7 @@ class DeepLApiTranslate extends DeepLApi {
 
 		//$request = array( 'auth_key' => $this->authKey );
 
-//		plouf( $this->request); die(('ozeozrkzr'));
+//		wpdeepl_debug_display( $this->request); die(('ozeozrkzr'));
 
 
 		foreach( array( 'target_lang', 'source_lang', 'tag_handling', 'ignore_tags','split_sentences', 'preserve_formatting', 'formality' ) as $tag ) {
@@ -337,7 +340,7 @@ class DeepLApiTranslate extends DeepLApi {
 
 		$body = implode( '&', $body );
 		$this->final_request['body'] = $body;
-		//plouf($this);die('ezorozrk');
+		//wpdeepl_debug_display($this);die('ezorozrk');
 		$this->saveRequest();
 		return $body;
 	}

@@ -1,18 +1,20 @@
-=== DeepL API translation plugin ===
+=== Translation with DeepL API ===
 Contributors: Malaiac
 Tags: translation, post
 Requires at least: 5.1
-Tested up to: 6.7.1
-Stable tag: 2.4.5
-Requires PHP: 7.2
-License: GNU AGPLv3 or later
-License URI: https://www.gnu.org/licenses/agpl-3.0.txt
+Tested up to: 6.9
+Stable tag: 2.5.2
+Requires PHP: 8.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Get DeepL translation magic right into your WordPress Admin
+Get DeepL translation magic into your WordPress Admin.
+Not affiliated with or endorsed by DeepL SE. DeepL® is a registered trademark of DeepL SE.
 
 == Description ==
 
-This plugin allows you to use DeepL translation API to translate posts ( and pages ) right from your WordPress Admin.
+This plugin allows you to use DeepL translation API to translate posts (and pages) right from your WordPress Admin.
+
 Adds a translate button to the edit post page.
 Shows current and remaining API usage.
 
@@ -20,19 +22,63 @@ This plugin requires an active DeepL API subscription with access to the API.
 Please note that DeepL User or Teams plans do NOT include API access.
 You have to get a ["DeepL Developer" plan](https://www.deepl.com/fr/pro/change-plan#developer) (both 'DeepL API Free' and 'DeepL API Pro' work with this plugin)
 
-Want to translate Products, meta fields, or translate in batches ? 
+Want to translate Products, meta fields, or translate in batches? 
 Get the [DeepL Pro API plugin](https://solutions.fluenx.com/en/produit/batch-deepl-translation-for-wordpress-posts/)
 
-Please note : the free and the premium version works the same relative to content editors ( Elementor, Blocks, etc.). You're free to test this plugin on your website to see if your specific configuration works well with the plugin. We cannot guarantee that all content editors work perfectly with the DeepL API so please test this plugin before buying the premium (you'll need the premium only if you need extended features like meta translations and batch translations)
+Please note: the free and the premium version works the same relative to content editors (Elementor, Blocks, etc.). You're free to test this plugin on your website to see if your specific configuration works well with the plugin. We cannot guarantee that all content editors work perfectly with the DeepL API so please test this plugin before buying the premium (you'll need the premium only if you need extended features like meta translations and batch translations)
+
+== Legal ==
+
+This plugin is an independent tool developed by Fluenx and is not affiliated with, endorsed by, or sponsored by DeepL SE.
+
+DeepL® is a registered trademark of DeepL SE. All trademarks are property of their respective owners.
+
+
+== External services ==
+
+This plugin connects to the DeepL API to provide machine translation services for your WordPress content.
+
+= What data is sent =
+* The text content you choose to translate (post title, excerpt, and/or content)
+* Your DeepL API key for authentication
+* The source and target language codes
+
+= When data is sent =
+Data is only sent when you explicitly click the "Translate" button in the post editor metabox. No automatic or background translations occur.
+
+= Service provider =
+This service is provided by DeepL SE.
+
+* [DeepL Terms and Conditions](https://www.deepl.com/en/pro-license)
+* [DeepL Privacy Policy](https://www.deepl.com/en/privacy)
+* [DeepL API Documentation](https://developers.deepl.com/docs)
+
+Note: This plugin requires a DeepL API subscription. The free "DeepL API Free" plan or paid "DeepL API Pro" plan both work. Standard DeepL User or Teams plans do NOT include API access.
+
 
 == Installation ==
 
 1. Upload plugin folder to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Enter your API key in the Settings/DeepL settings page
+3. Enter your API key in the Settings/Translation with DeepL page
+
+== External services ==
+
+This plugin relies on the DeepL API to provide text translation services. 
+
+* **Service used**: DeepL API (provided by DeepL SE).
+* **Purpose**: To translate WordPress content (posts, pages, strings) into different languages.
+* **Data sent**: The text content requested for translation and the user's API Authentication Key are sent to DeepL servers via secure HTTPS requests.
+* **Links**: 
+    * DeepL Terms and Conditions: https://www.deepl.com/en/terms/
+    * DeepL Privacy Policy: https://www.deepl.com/en/privacy/
+
+**Trademark Disclaimer**: This plugin is an independent integration and is not affiliated with, sponsored by, or endorsed by DeepL SE. The name "DeepL" is a trademark of DeepL SE.
 
 
 == Changelog ==
+= 2.5 - 08/12/2024 =
+* trademark compliance and security check *
 = 2.4.5 - 12/12/2024 =
 * various safety and performance improvements *
 = 2.4.4 - 14/10/2024 =
