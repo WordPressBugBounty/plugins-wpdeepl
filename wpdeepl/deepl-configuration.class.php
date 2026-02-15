@@ -75,7 +75,11 @@ class DeeplConfiguration {
 
 	}
 	static function getMetaBoxPostTypes() {
-		return apply_filters( 'wpdeepl_' . __METHOD__, get_option( 'wpdeepl_metabox_post_types' ) );
+		$post_types = get_option( 'wpdeepl_metabox_post_types' );
+		if ( empty( $post_types ) ) {
+			$post_types = array( 'post', 'page' );
+		}
+		return apply_filters( 'wpdeepl_' . __METHOD__, $post_types );
 	}
 	static function getMetaBoxDefaultBehaviour() {
 		return 'replace';
@@ -90,10 +94,18 @@ class DeeplConfiguration {
 		return apply_filters( 'wpdeepl_' . __METHOD__, $value );
 	}
 	static function getMetaBoxContext() {
-		return apply_filters( 'wpdeepl_' . __METHOD__, get_option( 'wpdeepl_metabox_context' ) );
+		$context = get_option( 'wpdeepl_metabox_context' );
+		if ( empty( $context ) ) {
+			$context = 'side';
+		}
+		return apply_filters( 'wpdeepl_' . __METHOD__, $context );
 	}
 	static function getMetaBoxPriority() {
-		return apply_filters( 'wpdeepl_' . __METHOD__, get_option( 'wpdeepl_metabox_priority' ) );
+		$priority = get_option( 'wpdeepl_metabox_priority' );
+		if ( empty( $priority ) ) {
+			$priority = 'high';
+		}
+		return apply_filters( 'wpdeepl_' . __METHOD__, $priority );
 	}
 
 	static function usingMultilingualPlugins() {
@@ -235,8 +247,8 @@ prefer_less - for a more informal language if available, otherwise fallback to d
 	}
 
 	static function getLanguagesAllowingFormality() {
-			// This feature currently only works for target languages DE (German), FR (French), IT (Italian), ES (Spanish), NL (Dutch), PL (Polish), PT-PT, PT-BR (Portuguese) and RU (Russian).
-			return array('de_DE', 'fr_FR', 'it_IT', 'es_SP', 'nl_NL', 'pt_PT', 'pt_BR', 'ru_RU' );
+			// This feature currently works for target languages DE, FR, IT, ES, NL, PL, PT-PT, PT-BR, RU, JA.
+			return array('de_DE', 'fr_FR', 'it_IT', 'es_ES', 'es_419', 'nl_NL', 'ja_JP', 'pl_PL', 'pt_PT', 'pt_BR', 'ru_RU' );
 		}	
 
 	static function DefaultsISOCodes() {
@@ -304,7 +316,7 @@ prefer_less - for a more informal language if available, otherwise fallback to d
 
 			$extra_country = false;
 			if ( strlen( $labels['astarget'] ) > 2  ) {
-				$extra_country = substr( $labels['astarget'], 3, 2 );
+				$extra_country = substr( $labels['astarget'], 3 );
 			}
 
 			$languages[$locale] = array();

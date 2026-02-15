@@ -14,8 +14,8 @@ class DeepL_Metabox {
 
 	public function add_meta_box() {
 		$post_types = DeepLConfiguration::getMetaBoxPostTypes();
+		//plouf( $post_types);		wpdeepl_debug_display($post_types, " context = " . DeepLConfiguration::getMetaBoxContext() . " prio ="  . DeepLConfiguration::getMetaBoxPriority() );
 
-		//if ( WPDEEPL_DEBUG ) wpdeepl_debug_display($post_types, " context = " . DeepLConfiguration::getMetaBoxContext() . " prio ="  . DeepLConfiguration::getMetaBoxPriority() );
 
 		add_meta_box(
 			'deepl_metabox',
@@ -29,9 +29,8 @@ class DeepL_Metabox {
 
 	public function output() {
 
+
 		global $post;
-
-
 
 		$nonce_action = DeepLConfiguration::getNonceAction();
 		$post_type_object = get_post_type_object( $post->post_type );
@@ -132,6 +131,7 @@ class DeepL_Metabox {
 				),
 			)
 		);
+		
 		echo wp_kses( $html, $allowed_tags );
 	}
 }

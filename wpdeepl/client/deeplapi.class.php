@@ -166,6 +166,8 @@ abstract class DeepLApi extends DeepLData {
 		$this->setCacheNames();
 		$this->result = false;
 
+
+
 		if ( $this->isCacheValid( $this->response_cache_file ) ) {
 			$this->response_type = 'cache';
 			$this->why_no_cache = false;
@@ -277,6 +279,8 @@ abstract class DeepLApi extends DeepLData {
 
 		}
 		$log_bits['response_length'] = strlen($this->result);
+
+		//plouf( $this ); die('erorkez');
 
 		if ( $this->result ) {
 			$this->result = json_decode( $this->result );

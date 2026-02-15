@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Translation with DeepL API
  * Description: Get DeepL translation magic right inside your WordPress editor (with a paid DeepL Pro account). This plugin is not affiliated with DeepL SE.
- * Version: 2.5.4
+ * Version: 2.6.0
  * Plugin Slug: wpdeepl
  * Author: Fluenx
  * Author URI: https://www.fluenx.com/

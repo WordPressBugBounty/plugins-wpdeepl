@@ -3,7 +3,7 @@ Contributors: Malaiac
 Tags: translation, post
 Requires at least: 5.1
 Tested up to: 6.9
-Stable tag: 2.5.2
+Stable tag: 2.6.0
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -77,6 +77,11 @@ This plugin relies on the DeepL API to provide text translation services.
 
 
 == Changelog ==
+= 2.6.0 - 15/02/2026 =
+* Added Vietnamese, Hebrew, Thai, Spanish (Latin America), Chinese Traditional languages
+* Replaced Chinese (ZH) target with Chinese Simplified (ZH-HANS) and Chinese Traditional (ZH-HANT) variants
+* Fixed formality not working for Spanish (was using wrong locale code)
+* Added formality support for Japanese and Polish
 = 2.5 - 08/12/2024 =
 * trademark compliance and security check *
 = 2.4.5 - 12/12/2024 =
