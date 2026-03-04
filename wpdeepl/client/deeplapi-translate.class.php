@@ -30,7 +30,7 @@ class DeepLApiTranslate extends DeepLApi {
 		$string = $original_string;
 
 		$string = preg_replace_callback( '/\\\\u( [0-9a-fA-F]{4} )/', function ( $match ) {
- 		
+
  		$string = mb_convert_encoding( pack( 'H*', $match[1] ), 'UTF-8', 'UCS-2BE' );
 		}, $string );
 
@@ -42,6 +42,10 @@ class DeepLApiTranslate extends DeepLApi {
 		if( $index == 'slug' ) {
 			$string = str_replace( '-' , ' ', $string );
 		}
+
+		// Wrap in a parent div to prevent DeepL tag_handling v2 "text without parent" error
+		// on Gutenberg content with multiple block comments.
+		$string = '<div id="wpdeepl-wrapper">' . $string . '</div>';
 
 		//$string = addslashes( $string );
 
@@ -296,6 +300,10 @@ class DeepLApiTranslate extends DeepLApi {
 			$translated_text = str_replace( '--&gt', '-->', $translated_text );
 
 			$translated_text = str_replace( '-->', "-->\n", $translated_text );
+
+			// Strip the wrapper div added in prepareString()
+			$translated_text = preg_replace( '#^<div id="wpdeepl-wrapper">(.*)</div>$#s', '$1', $translated_text );
+
 			$translated[$string_index] = $translated_text;
 		}
 

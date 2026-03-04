@@ -82,10 +82,10 @@ This plugin relies on the DeepL API to provide text translation services.
 * Replaced Chinese (ZH) target with Chinese Simplified (ZH-HANS) and Chinese Traditional (ZH-HANT) variants
 * Fixed formality not working for Spanish (was using wrong locale code)
 * Added formality support for Japanese and Polish
+= 2.5.1 - 12/12/2024 = 
+* various safety and performance improvements. wrong changelog, should have been 2.5.1 *
 = 2.5 - 08/12/2024 =
 * trademark compliance and security check *
-= 2.4.5 - 12/12/2024 =
-* various safety and performance improvements *
 = 2.4.4 - 14/10/2024 =
 * bug fix when not working with Polylang *
 = 2.4.3.14 - 11/10/2024 =
