@@ -180,7 +180,7 @@ function deepl_translate_post_link( $args ) {
 	foreach ( array( 'post_title', 'post_content', 'post_excerpt' ) as $key ) {
 		$option_key = 'wpdeepl_t' . $key;
 		if( WPDEEPL_DEBUG ) echo "\n option key " . esc_html($option_key) . " = " . esc_html(get_option( $option_key ));
-		if( get_option( $option_key ) !== '' )
+		if( filter_var( get_option( $option_key ), FILTER_VALIDATE_BOOLEAN ) )
 			$strings_to_translate[$key] = $WP_Post->$key;
 	}
 

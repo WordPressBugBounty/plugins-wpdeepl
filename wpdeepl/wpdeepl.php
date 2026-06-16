@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Translation with DeepL API
  * Description: Get DeepL translation magic right inside your WordPress editor (with a paid DeepL Pro account). This plugin is not affiliated with DeepL SE.
- * Version: 2.6.1
+ * Version: 2.6.2
  * Plugin Slug: wpdeepl
  * Author: Fluenx
  * Author URI: https://www.fluenx.com/
@@ -17,8 +17,8 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 // exit early
-$wpdeepl_allow_front_end = get_option('wpdeepl_allow_front_end');
-if( $wpdeepl_allow_front_end != 'yes' ) {
+$wpdeepl_allow_front_end = filter_var( get_option('wpdeepl_allow_front_end'), FILTER_VALIDATE_BOOLEAN );
+if( ! $wpdeepl_allow_front_end ) {
 	if ( !function_exists( 'is_admin' ) || !is_admin() )
 	return;
 }
@@ -48,7 +48,7 @@ function wpdeepl_paths( $paths = array() ) {
 }
 
 try {
-	if ( is_admin() || $wpdeepl_allow_front_end == 'yes' ) {
+	if ( is_admin() || $wpdeepl_allow_front_end ) {
 
 		
 		include_once  trailingslashit( WPDEEPL_PATH ) . 'deepl-configuration.class.php';

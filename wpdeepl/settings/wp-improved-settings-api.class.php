@@ -993,7 +993,7 @@ class WC_Improved_Settings_API {
 				<fieldset>
 					<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
 					<label for="<?php echo esc_attr( $field_key ); ?>">
-					<input <?php disabled( $data['disabled'], true ); ?> class="<?php echo esc_attr( $data['class'] ); ?>" type="checkbox" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" value="1" <?php checked( $this->get_option( $key ), 'yes' ); ?> <?php echo wp_kses_post( $this->get_custom_attribute_html( $data ) );  ?> /> <?php echo wp_kses_post( $data['label'] ); ?></label><br/>
+					<input <?php disabled( $data['disabled'], true ); ?> class="<?php echo esc_attr( $data['class'] ); ?>" type="checkbox" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" value="1" <?php checked( filter_var( $this->get_option( $key ), FILTER_VALIDATE_BOOLEAN ) ); ?> <?php echo wp_kses_post( $this->get_custom_attribute_html( $data ) );  ?> /> <?php echo wp_kses_post( $data['label'] ); ?></label><br/>
 					<?php echo wp_kses_post( $this->get_description_html( $data ) );  ?>
 				</fieldset>
 			</td>

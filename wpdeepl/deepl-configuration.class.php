@@ -283,7 +283,7 @@ prefer_less - for a more informal language if available, otherwise fallback to d
 		if ( empty( $wp_filesystem ) ) {
 		    require_once( ABSPATH . 'wp-admin/includes/file.php' );
 		    if ( ! WP_Filesystem() ) {
-		        return $csv_data; // Retourne un tableau vide en cas d'échec
+		        return array(); // Retourne un tableau vide en cas d'échec
 		    }
 		}
 		$file_path = wp_normalize_path( trailingslashit( WPDEEPL_PATH ) . 'languages.csv' );
